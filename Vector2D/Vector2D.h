@@ -34,7 +34,7 @@ template<typename T>
 concept NumericalValue = std::integral<T> || std::floating_point<T>;
 
 template<std::invocable Func>
-using StaticSwitchArray = const std::array<std::pair<std::function<bool()>, Func>, 3>;
+using StaticSwitchArray = std::vector<std::pair<std::function<bool()>, Func>>;
 
 template<std::invocable Func>
 using StaticSwitchArray_Elem = std::pair<std::function<bool()>, Func>;
@@ -42,7 +42,7 @@ using StaticSwitchArray_Elem = std::pair<std::function<bool()>, Func>;
 namespace Utility {
 
     template<std::invocable Func>
-    std::invoke_result_t<Func> DO_ONCE(Func func, bool& reset)
+    std::invoke_result_t<Func> DO_ONCE(Func&& func, bool& reset)
     {
         static bool called{ false };
 
@@ -51,24 +51,24 @@ namespace Utility {
 
             if (reset == true) called = false;
 
-            return std::forward<Func>(func)();
+            return func();
         }
     }
 
     template<std::invocable Func>
-    std::invoke_result_t<Func> DO_ONCE(Func func)
+    std::invoke_result_t<Func> DO_ONCE(Func&& func)
     {
         static bool called{ false };
 
         if (called == false) {
             called = true;
 
-            return std::forward<Func>(func)();
+            return func();
         }
     }
 
     template<std::invocable Func>
-    std::invoke_result_t<Func> DO_N_TIMES(Func func, bool& reset, uint16_t times)
+    std::invoke_result_t<Func> DO_N_TIMES(Func&& func, bool& reset,const uint16_t& times)
     {
         static uint16_t callTimes{};
 
@@ -79,26 +79,26 @@ namespace Utility {
                 callTimes = 0;
             }
 
-            return std::forward<Func>(func)();
+            return func();
         }
 
     }
 
     template<std::invocable Func>
-    std::invoke_result_t<Func> DO_N_TIMES(Func func, uint16_t times)
+    std::invoke_result_t<Func> DO_N_TIMES(Func&& func, const uint16_t& times)
     {
         static uint16_t callTimes{};
 
         if (callTimes < times) {
             callTimes += 1;
 
-            return std::forward<Func>(func)();
+            return func();
         }
 
     }
 
     template<std::invocable<int> Func>
-    void FOR_LOOP_WITH_DELAY(int loopStart, int loopEnd,const int step, const std::chrono::duration<float> delay, Func&& loop_body) {
+    void FOR_LOOP_WITH_DELAY(int loopStart, int loopEnd,const int step, const std::chrono::duration<float>& delay, Func&& loop_body) {
 
         static int index = loopStart;
 
@@ -114,7 +114,7 @@ namespace Utility {
     }
 
     template<std::invocable Func , std::invocable Cond>
-    void WHILE_LOOP_WITH_DELAY(Cond&& condition, const std::chrono::duration<float> delay, Func&& loop_body) {
+    void WHILE_LOOP_WITH_DELAY(Cond&& condition, const std::chrono::duration<float>& delay, Func&& loop_body) {
 
         loop_body();
         std::this_thread::sleep_for(delay);
@@ -175,6 +175,17 @@ namespace Utility {
             }
         }
     }
+
+    template<std::invocable Func>
+    void STATIC_SWITCH(std::initializer_list<Func> func)
+    {
+        for (Func casePair : func)
+        {
+            if (casePair.first()) {
+                casePair.second();
+            }
+        }
+    }
     //==============================================
 
 };
@@ -188,6 +199,8 @@ public:
 
 public:
 
+    using Numeric_CRef = const numerics&;
+
 	Vector2D(numerics x, numerics y) : X(x), Y(y) {};
 
 	constexpr Vector2D() noexcept : X(0.f), Y(0.f) {};
@@ -198,11 +211,11 @@ public:
 
 	constexpr const numerics& getY() const { return Y; }
 
-	void setX(numerics X) {
+	void setX(const numerics& X) {
 		this->X = X;
 	}
 
-	void setY(numerics Y) {
+	void setY(const numerics& Y) {
 		this->Y = Y;
 	}
 
@@ -226,11 +239,11 @@ public:
         return Vector2D(X / other.X, Y / other.Y);
     }
 
-    constexpr Vector2D operator*(numerics value) const {
+    constexpr Vector2D operator*(const numerics& value) const {
         return Vector2D(X * value, Y * value);
     }
 
-    constexpr Vector2D operator/(numerics value) const {
+    constexpr Vector2D operator/(const numerics& value) const {
         return Vector2D(X / value, Y / value);
     }
 
@@ -244,12 +257,12 @@ public:
 		return a.getX() * b.getY() - a.getY() * b.getX();
 	}
 
-	static float deg2rad(numerics degrees)
+	static float deg2rad(const numerics& degrees)
 	{
 		return degrees * std::numbers::pi_v<float> / 180.0f;
 	}
 
-	static float rad2deg(numerics radians)
+	static float rad2deg(const numerics& radians)
 	{
 		return radians * 180.0f / std::numbers::pi_v<float>;
 	}
@@ -267,7 +280,7 @@ public:
 	}
 
 	constexpr static float getAngle_Degrees(const Vector2D& vec1, const Vector2D& vec2) {
-		return (getAngle_Radians(vec1, vec2) * 180.f / 3.14159265);
+		return rad2deg(getAngle_Radians(vec1, vec2));
 	}
 
 	constexpr static float getDistance(const Vector2D& point1, const Vector2D& point2) {
@@ -278,15 +291,15 @@ public:
 		return std::abs((lineEnd.Y - lineStart.Y) * point.X - (lineEnd.X - lineStart.X) * point.Y + lineEnd.X * lineStart.Y - lineEnd.Y * lineStart.X) / std::sqrt((std::pow((lineEnd.Y - lineStart.Y), 2.f) + std::pow((lineEnd.X - lineStart.X), 2.f)));
 	}
 
-    constexpr static numerics mapRangeUnclamped(numerics value, numerics inA, numerics inB, numerics outA, numerics outB) {
+    constexpr static numerics mapRangeUnclamped(Numeric_CRef value, Numeric_CRef inA, Numeric_CRef inB, Numeric_CRef outA, Numeric_CRef outB) {
         return outA + (value - inA) * (outB - outA) / (inB - inA);
     }
 
-    constexpr static numerics mapRangeClamped(numerics value, numerics inA, numerics inB, numerics outA, numerics outB) {
+    constexpr static numerics mapRangeClamped(Numeric_CRef value, Numeric_CRef inA, Numeric_CRef inB, Numeric_CRef outA, Numeric_CRef outB) {
         return std::clamp((outA + (value - inA) * (outB - outA) / (inB - inA)), outA, outB);
     }
 
-    constexpr static Vector2D<numerics> angleToVector(float angle) {
+    constexpr static Vector2D<numerics> angleToVector(const float& angle) {
         return Vector2D<numerics>(std::cos(deg2rad(angle)), std::sin(deg2rad(angle)));
     }
 
@@ -302,7 +315,7 @@ public:
         return Vector2D<float>(NULL, NULL);
     }
 
-    constexpr static std::optional<Vector2D<numerics>> getIntersectionPoint(Vector2D<numerics> D1, Vector2D<numerics> D2, Vector2D<numerics> P1, Vector2D<numerics> P2) {
+    constexpr static std::optional<Vector2D<numerics>> getIntersectionPoint(const Vector2D<numerics>& D1, const Vector2D<numerics>& D2, const Vector2D<numerics>& P1, const Vector2D<numerics>& P2) {
 
         float denom = D1.getX() * D2.getY() - D1.getY() * D2.getX();
         if (denom == 0.f) {
@@ -319,7 +332,7 @@ public:
         }
     }
 
-    static numerics Num_InterpTo(numerics current, numerics target, float deltaTime, numerics speed)
+    static numerics Num_InterpTo(numerics& current, Numeric_CRef target,const float& deltaTime, Numeric_CRef speed)
     {
 
         static float startDeltaTime;
@@ -332,7 +345,7 @@ public:
         return current + (target - current) * alpha;
     }
 
-    static const Vector2D<numerics>& Vec_InterpTo(const Vector2D<numerics>& current, const Vector2D<numerics>& target, float deltaTime, numerics speed)
+    static const Vector2D<numerics>& Vec_InterpTo(const Vector2D<numerics>& current, const Vector2D<numerics>& target,const float& deltaTime, Numeric_CRef speed)
     {
 
         static float startDeltaTime;
