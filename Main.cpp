@@ -3,6 +3,8 @@
 
 //Just testing some functionality
 
+static float local_DeltaTime = 0.f;
+
 class Worker {
 public:
     void work() {
@@ -36,13 +38,21 @@ int main()
 
     TimeFramework::Delay(4.0s);
 
-    RobotBase robot;
+    std::cout << "angleToVector: " << Vector2D<float>::angleToVector(90.f).to_string() << "\n";
 
-    robot.Run();
+    std::cout << "cross: " << Vector2D<float>::cross(Vector2D<float>(1.3f, 2.5f), Vector2D<float>(1.f, 2.f)) << "\n";
 
-    TimeFramework::Delay(5.0s);
+    std::cout << "dot: " << Vector2D<float>::dot(Vector2D<float>(1.3f, 2.5f), Vector2D<float>(1.f, 2.f)) << "\n";
 
-    robot.Terminate();
+    std::cout << "getAngle_Degrees: " << Vector2D<float>::getAngle_Degrees(Vector2D<float>(0.f, 2.5f), Vector2D<float>(1.f, 2.f)) << "\n";
+
+    std::cout << "getDistance: " << Vector2D<float>::getDistance(Vector2D<float>(1.3f, 2.5f), Vector2D<float>(1.f, 2.f)) << "\n";
+
+    std::cout << "getAngle_Radians: " << Vector2D<float>::getAngle_Radians(Vector2D<float>(1.3f, 2.5f), Vector2D<float>(1.f, 2.f)) << "\n";
+
+    std::cout << "getLength: " << Vector2D<float>::getLength(Vector2D<float>(1.3f, 2.5f)) << "\n";
+
+    std::cout << "getPerpendicularDistanceToLine: " << Vector2D<float>::getPerpendicularDistanceToLine(Vector2D<float>(1.3f, 2.5f), Vector2D<float>(1.f, 2.f), Vector2D<float>()) << "\n";
 
     Utility::FOR_LOOP_WITH_DELAY(0, 10, 1, 0.1s, [](int i) {
         std::cout << "Delayed FOR\n";
@@ -58,19 +68,57 @@ int main()
 
     while (true)
     {
-        std::vector<std::function<void()>> fs = {
-            []() { std::this_thread::sleep_for(0.2s); std::cout << "First\n"; },
-            []() { std::this_thread::sleep_for(0.2s); std::cout << "Second\n"; },
-            []() { std::this_thread::sleep_for(0.2s); std::cout << "Third\n"; }
-        };
+        local_DeltaTime += 0.01f;
 
-        Utility::MULTICALL<std::function<void()>>({
-            []() { std::this_thread::sleep_for(0.2s); std::cout << "First\n"; },
-            []() { std::this_thread::sleep_for(0.2s); std::cout << "Second\n"; },
-            []() { std::this_thread::sleep_for(0.2s); std::cout << "Third\n"; }
-            });
+        Utility::STATIC_SWITCH<std::function<void()>>({
+            {
+                []() {return false; },
+                []() {std::cout << Vector2D<float>::mapRangeUnclamped(local_DeltaTime, 0.f, 5.f, 0.f, 1000.f) << "\n"; }
+            },
+            {
+                []() {return false; },
+                []() {std::cout << Vector2D<float>::mapRangeClamped(local_DeltaTime, 0.f, 5.f, 0.f, 1000.f) << "\n"; }
+            },
+            {
+                []() {return false; },
+                []()
+                {
+                    std::vector<std::function<void()>> fs = {
+                        []() { std::this_thread::sleep_for(0.2s); std::cout << "First\n"; },
+                        []() { std::this_thread::sleep_for(0.2s); std::cout << "Second\n"; },
+                        []() { std::this_thread::sleep_for(0.2s); std::cout << "Third\n"; }
+                    };
 
+                    Utility::MULTICALL<std::function<void()>>({
+                        []() { std::this_thread::sleep_for(0.2s); std::cout << "First\n"; },
+                        []() { std::this_thread::sleep_for(0.2s); std::cout << "Second\n"; },
+                        []() { std::this_thread::sleep_for(0.2s); std::cout << "Third\n"; }
+                    });
+                }
+            },
+            {
+                []() {return false; },
+                []()
+                {
+                    static float var(0.f);
 
+                    TimeFramework::Delay(0.1s);
+
+                    std::cout << Vector2D<float>::Num_InterpTo(var, 100.f, local_DeltaTime, 1.3f) << "\n";
+                }
+            },
+            {
+                []() {return true; },
+                []()
+                {
+                    static Vector2D<float> var{1.3f, 23.f};
+
+                    TimeFramework::Delay(0.1s);
+
+                    std::cout << Vector2D<float>::Vec_InterpTo(var, Vector2D<float>(100.f), local_DeltaTime, 1.3f).to_string() << "\n";
+                }
+            }
+        });
     }
 
 }

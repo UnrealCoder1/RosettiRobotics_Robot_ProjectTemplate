@@ -29,7 +29,7 @@ public:
 public:
 
     template<std::floating_point f_point>
-    void PauseMachineExecution(volatile std::chrono::duration<f_point>* duration)
+    void PauseMachineExecution(volatile const std::chrono::duration<f_point>& duration)
     {
         bStopBranchExecution = true;
 
@@ -61,10 +61,6 @@ public:
 
     void setRobotPos(TranslationType* newPos) {
         this->Pos = *newPos;
-    }
-
-    void setRobotPos(TranslationType newPos) {
-        this->Pos = newPos;
     }
 
 protected:

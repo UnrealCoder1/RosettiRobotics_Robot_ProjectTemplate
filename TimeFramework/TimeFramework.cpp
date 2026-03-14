@@ -5,7 +5,7 @@
 
 using namespace std::chrono_literals;
 
-void TimeFramework::Tick(bool bEndCondition, ChronoDuration delay_step) {
+void TimeFramework::Tick(const bool& bEndCondition, ChronoDuration delay_step) {
 
     std::thread tickThread([=, this]() {
 
@@ -27,7 +27,7 @@ void TimeFramework::Tick(bool bEndCondition, ChronoDuration delay_step) {
     }
 }
 
-void TimeFramework::StartTimeline(bool bEndCondition, ChronoDuration delay_step) {
+void TimeFramework::StartTimeline(const bool& bEndCondition, ChronoDuration delay_step) {
     Tick(bEndCondition, delay_step);
 }
 
@@ -36,8 +36,8 @@ void TimeFramework::EndTimeline()
     bForcedEnd = true;
 }
 
-std::chrono::duration<float> TimeFramework::GetDeltaTime() {
-    return DeltaTime * 1s;
+ChronoDuration* TimeFramework::GetDeltaTime() {
+    return &(DeltaTime * 1s);
 }
 
 void TimeFramework::EVENT_BeginInit() {

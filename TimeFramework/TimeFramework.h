@@ -18,17 +18,19 @@ class TimeFramework {
 
 private:
 
-    void Tick(bool bEndCondition, ChronoDuration delay_step);
+    void Tick(const bool& bEndCondition, ChronoDuration delay_step);
 
     bool bForcedEnd = false;
 
 protected:
 
+    
+
     virtual void EVENT_BeginInit();
 
     virtual void EVENT_Tick(float deltaTime);
 
-    void StartTimeline(bool bEndCondition, ChronoDuration delay_step);
+    void StartTimeline(const bool& bEndCondition, ChronoDuration delay_step);
 
     void EndTimeline();
 
@@ -57,10 +59,10 @@ protected:
 public:
 
     template<std::floating_point f_point>
-    inline static void Delay(std::chrono::duration<f_point> duration) {
+    inline static void Delay(const std::chrono::duration<f_point>& duration) {
         std::this_thread::sleep_for(duration);
     }
 
 
-    static std::chrono::duration<float> GetDeltaTime();
+    ChronoDuration* GetDeltaTime();
 };
