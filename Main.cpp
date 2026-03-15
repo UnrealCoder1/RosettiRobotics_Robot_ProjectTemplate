@@ -36,23 +36,32 @@ int main()
 
     worker.work();
 
-    TimeFramework::Delay(4.0s);
+    TimeFramework::Delay(1.0s);
+    {
+        TimeFramework::Timer<TimeFramework::SCOPED> timer;
 
-    std::cout << "angleToVector: " << Vector2D<float>::angleToVector(90.f).to_string() << "\n";
+        std::cout << "angleToVector: " << Vector2D<float>::angleToVector(90.f).to_string() << "\n";
 
-    std::cout << "cross: " << Vector2D<float>::cross(Vector2D<float>(1.3f, 2.5f), Vector2D<float>(1.f, 2.f)) << "\n";
+        std::cout << "cross: " << Vector2D<float>::cross(Vector2D<float>(1.3f, 2.5f), Vector2D<float>(1.f, 2.f)) << "\n";
 
-    std::cout << "dot: " << Vector2D<float>::dot(Vector2D<float>(1.3f, 2.5f), Vector2D<float>(1.f, 2.f)) << "\n";
+        std::cout << "dot: " << Vector2D<float>::dot(Vector2D<float>(1.3f, 2.5f), Vector2D<float>(1.f, 2.f)) << "\n";
 
-    std::cout << "getAngle_Degrees: " << Vector2D<float>::getAngle_Degrees(Vector2D<float>(0.f, 2.5f), Vector2D<float>(1.f, 2.f)) << "\n";
+        std::cout << "getAngle_Degrees: " << Vector2D<float>::getAngle_Degrees(Vector2D<float>(0.f, 2.5f), Vector2D<float>(1.f, 2.f)) << "\n";
 
-    std::cout << "getDistance: " << Vector2D<float>::getDistance(Vector2D<float>(1.3f, 2.5f), Vector2D<float>(1.f, 2.f)) << "\n";
+        std::cout << "getDistance: " << Vector2D<float>::getDistance(Vector2D<float>(1.3f, 2.5f), Vector2D<float>(1.f, 2.f)) << "\n";
 
-    std::cout << "getAngle_Radians: " << Vector2D<float>::getAngle_Radians(Vector2D<float>(1.3f, 2.5f), Vector2D<float>(1.f, 2.f)) << "\n";
+        std::cout << "getAngle_Radians: " << Vector2D<float>::getAngle_Radians(Vector2D<float>(1.3f, 2.5f), Vector2D<float>(1.f, 2.f)) << "\n";
 
-    std::cout << "getLength: " << Vector2D<float>::getLength(Vector2D<float>(1.3f, 2.5f)) << "\n";
+        std::cout << "getLength: " << Vector2D<float>::getLength(Vector2D<float>(1.3f, 2.5f)) << "\n";
 
-    std::cout << "getPerpendicularDistanceToLine: " << Vector2D<float>::getPerpendicularDistanceToLine(Vector2D<float>(1.3f, 2.5f), Vector2D<float>(1.f, 2.f), Vector2D<float>()) << "\n";
+        std::cout << "getPerpendicularDistanceToLine: " << Vector2D<float>::getPerpendicularDistanceToLine(Vector2D<float>(1.3f, 2.5f), Vector2D<float>(1.f, 2.f), Vector2D<float>()) << "\n";
+    }
+
+    TimeFramework::Timer<TimeFramework::LIMITED> trackedTimer;
+
+    TimeFramework::Delay(3.0s);
+
+    trackedTimer.StartTimer();
 
     Utility::FOR_LOOP_WITH_DELAY(0, 10, 1, 0.1s, [](int i) {
         std::cout << "Delayed FOR\n";
@@ -65,6 +74,8 @@ int main()
 
         std::cout << integer << "\n";
     });
+
+    trackedTimer.TerminateTimer();
 
     while (true)
     {
@@ -108,7 +119,7 @@ int main()
                 }
             },
             {
-                []() {return true; },
+                []() {return false; },
                 []()
                 {
                     static Vector2D<float> var{1.3f, 23.f};
@@ -116,6 +127,13 @@ int main()
                     TimeFramework::Delay(0.1s);
 
                     std::cout << Vector2D<float>::Vec_InterpTo(var, Vector2D<float>(100.f), local_DeltaTime, 1.3f).to_string() << "\n";
+                }
+            },
+            {
+                []() {return true; },
+                []()
+                {
+                    RobotBase robot;
                 }
             }
         });

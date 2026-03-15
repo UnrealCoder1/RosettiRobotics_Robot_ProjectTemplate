@@ -5,29 +5,29 @@
 
 using namespace std::chrono_literals;
 
-void TimeFramework::Tick(const bool& bEndCondition, ChronoDuration delay_step) {
+void TimeFramework::Tick(bool& bEndCondition, ChronoDuration delay_step) {
 
-    std::thread tickThread([=, this]() {
+    std::thread tickThread([&, this]() {
+        while (bEndCondition)
+        {
+            if (bForcedEnd) break;
 
+            Utility::DO_ONCE([=]() {EVENT_BeginInit(); });
+
+            EVENT_Tick(DeltaTime.count());
+
+            if (delay_step != 0.0s) {
+                std::this_thread::sleep_for(delay_step);
+            }
+
+            DeltaTime += 0.1s;
+        }
     });
 
-    while (bEndCondition)
-    {
-        if (bForcedEnd) break;
-
-        Utility::DO_ONCE([=]() {EVENT_BeginInit(); });
-
-        EVENT_Tick(DeltaTime);
-
-        if (delay_step != 0.0s) {
-            std::this_thread::sleep_for(delay_step);
-        }
-
-        DeltaTime += 0.1f;
-    }
+    tickThread.join();
 }
 
-void TimeFramework::StartTimeline(const bool& bEndCondition, ChronoDuration delay_step) {
+void TimeFramework::StartTimeline(bool& bEndCondition, ChronoDuration delay_step) {
     Tick(bEndCondition, delay_step);
 }
 
@@ -37,7 +37,7 @@ void TimeFramework::EndTimeline()
 }
 
 ChronoDuration* TimeFramework::GetDeltaTime() {
-    return &(DeltaTime * 1s);
+    return &DeltaTime;
 }
 
 void TimeFramework::EVENT_BeginInit() {
@@ -47,3 +47,5 @@ void TimeFramework::EVENT_BeginInit() {
 void TimeFramework::EVENT_Tick(float delta_time) {
     //Implement basic functionality
 }
+
+

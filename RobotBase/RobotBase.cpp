@@ -31,20 +31,22 @@ void RobotBase::EVENT_Tick(float deltaTime)
 
     TimeFramework::Delay(0.1s);
 
-    std::cout << "Robot pod: " << Pos.to_string() << " | Delta time : " << TimeFramework::GetDeltaTime().count() << " | Robot Tick |\n";
+    std::cout << "Robot pod: " << Pos.to_string() << " | Delta time : " << TimeFramework::GetDeltaTime()->count() << " | Robot Tick |\n";
 }
 
 //!!!!!CALL THIS INSIDE THE MAIN FILE, INSIDE "int main()"!!!!! // !!!AVOID POINTERS, STACK ALLOCATIONS ONLY!!!
+#if not defined SCOPED_START
 void RobotBase::Run()
 {
-    StartTimeline(!bStopBranchExecution, 0.0s);
+    StartTimeline(bStartBranchExecution, 0.0s);
 }
+#endif
 
 void RobotBase::Terminate()
 {
     EndTimeline();
-    bStopBranchExecution = true;
-    DeltaTime = 0.f;
+    bStartBranchExecution = false;
+    DeltaTime = 0.0s;
 }
 
 //--------------------------------------------------------------------------

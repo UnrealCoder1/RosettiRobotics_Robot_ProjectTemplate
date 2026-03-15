@@ -207,9 +207,13 @@ public:
 
     Vector2D(numerics value) : X(value), Y(value) {};
 
-	constexpr const numerics& getX() const { return X; }
+	constexpr numerics* getX() { return &X; }
 
-	constexpr const numerics& getY() const { return Y; }
+	constexpr numerics* getY() { return &Y; }
+
+    constexpr const numerics& getX() const { return X; }
+
+    constexpr const numerics& getY() const { return Y; }
 
 	void setX(const numerics& X) {
 		this->X = X;

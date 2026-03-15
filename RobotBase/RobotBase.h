@@ -5,10 +5,20 @@
 
 #define USE_TYPE 0
 
+#define SCOPED_START
+
 template<std::floating_point f_point>
 using Translation = Vector2D<f_point>;
 
 class RobotBase : public TimeFramework {
+
+#if defined SCOPED_START
+public:
+
+    RobotBase() {
+        StartTimeline(bStartBranchExecution, 0.0s);
+    }
+#endif
 
 private:
 
@@ -24,14 +34,14 @@ public:
 
     R_Settings RobotConfig;
 
-    bool bStopBranchExecution{ false };
+    bool bStartBranchExecution{ true };
 
 public:
 
     template<std::floating_point f_point>
-    void PauseMachineExecution(volatile const std::chrono::duration<f_point>& duration)
+    void PauseMachineExecution(const std::chrono::duration<f_point>& duration)
     {
-        bStopBranchExecution = true;
+        bStartBranchExecution = false;
 
         using clock = std::chrono::steady_clock;
 
@@ -40,12 +50,14 @@ public:
 
         auto elapsed = std::chrono::duration_cast<std::chrono::seconds>(now - start);
 
-        if (elapsed.count() >= duration) {
-            bStopBranchExecution = false;
+        if (elapsed.count() >= duration.count()) {
+            bStartBranchExecution = true;
         }
     }
 
+#if not defined SCOPED_START
     void Run();
+#endif();
 
     void Terminate();
 
