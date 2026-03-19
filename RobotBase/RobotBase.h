@@ -5,20 +5,10 @@
 
 #define USE_TYPE 0
 
-#define SCOPED_START
-
 template<std::floating_point f_point>
 using Translation = Vector2D<f_point>;
 
 class RobotBase : public TimeFramework {
-
-#if defined SCOPED_START
-public:
-
-    RobotBase() {
-        StartTimeline(bStartBranchExecution, 0.0s);
-    }
-#endif
 
 private:
 
@@ -55,9 +45,7 @@ public:
         }
     }
 
-#if not defined SCOPED_START
     void Run();
-#endif();
 
     void Terminate();
 

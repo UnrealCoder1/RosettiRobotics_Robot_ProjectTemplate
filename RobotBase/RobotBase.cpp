@@ -35,12 +35,10 @@ void RobotBase::EVENT_Tick(float deltaTime)
 }
 
 //!!!!!CALL THIS INSIDE THE MAIN FILE, INSIDE "int main()"!!!!! // !!!AVOID POINTERS, STACK ALLOCATIONS ONLY!!!
-#if not defined SCOPED_START
 void RobotBase::Run()
 {
     StartTimeline(bStartBranchExecution, 0.0s);
 }
-#endif
 
 void RobotBase::Terminate()
 {

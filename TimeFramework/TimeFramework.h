@@ -2,6 +2,7 @@
 
 #include<chrono>
 #include<functional>
+#include<memory>
 #include "Vector2D.h"
 
 //Everything works, besides the EndTimeline func, working on it, ignore thecommented code, trying to figure out if I can use it for something or not
@@ -12,15 +13,17 @@ using ChronoDuration = std::chrono::duration<float>;
 
 static ChronoDuration DeltaTime = 0.0s;
 
-class TimeFramework {
+class TimeFramework{
 
     //std::vector<std::function<void()>> Init_FunctionsToInsert;
 
 private:
 
-    void Tick(bool& bEndCondition, ChronoDuration delay_step);
-
     bool bForcedEnd = false;
+
+public:
+
+    void StartTimeline(bool& bEndCondition, ChronoDuration delay_step);
 
 protected:
 
@@ -28,7 +31,7 @@ protected:
 
     virtual void EVENT_Tick(float deltaTime);
 
-    void StartTimeline(bool& bEndCondition, ChronoDuration delay_step);
+    void Tick(bool& bEndCondition, ChronoDuration delay_step);
 
     void EndTimeline();
 
@@ -148,3 +151,5 @@ public:
 
     };
 };
+
+static inline std::vector<TimeFramework*> Time_Objects(2);

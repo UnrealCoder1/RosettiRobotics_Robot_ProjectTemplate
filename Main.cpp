@@ -1,5 +1,8 @@
 
 #include "RobotBase.h"
+#include "InitManager.h"
+#include "Verifications.h"
+#include "Reevaluation.h"
 
 //Just testing some functionality
 
@@ -16,6 +19,73 @@ public:
 
 int main() 
 {
+
+    int* ptr = new int(10);
+
+    int* ptr1 = Verifications::EnsureIsValid(ptr);
+
+    int it = 10;
+
+    Verifications::CheckIsValid(it);
+
+    std::cout << ptr1 << "\n";
+
+    ReEvaluation::T_GuardValue<float> GFloat = 10.f;
+
+    std::cout << GFloat.toString() << "\n";
+
+    GFloat = 100.f;
+
+    std::cout << "Current value: " << GFloat.toString() << " | " << "Tracked value: " << *GFloat.GetTrackedValue() << "\n";
+
+    GFloat = 32.f;
+    GFloat.SetTrackedValue(47.f);
+
+    std::cout << "Current value: " << GFloat.toString() << " | " << "Tracked value: " << *GFloat.GetTrackedValue() << "\n";
+
+    GFloat.ReInitialize();
+
+    std::cout << "Current value: " << GFloat.toString() << " | " << "Tracked value: " << *GFloat.GetTrackedValue() << "\n";
+
+    ReEvaluation::T_GuardValue<float> GFloat1{ 2.f }, GFloat2{0.f};
+
+    GFloat2 = GFloat + GFloat1;
+    GFloat2 = GFloat * GFloat1;
+    GFloat2 = GFloat - GFloat1;
+    GFloat2 = GFloat / GFloat1;
+
+    std::cout << GFloat2.toString() << "\n";
+
+    ReEvaluation::T_HigherGuard<float> HigherG_Float(10, 3);
+
+    for (int i = 1; i <= 7; i++)
+    {
+
+        std::cout << HigherG_Float.toString();
+
+        if (i == 2)
+            std::cout << "Idx of elem 10: " << HigherG_Float.findIndexOfElement(10) << "\n";
+
+
+        if (i == 4) {
+            std::cout << "Current value: " << *HigherG_Float.getCurrentValue() << " , Guarded value: " << *HigherG_Float.getGuardedValue() << " , Tracked index: " << *HigherG_Float.getTrackedIndex() << "\n";
+        }
+
+        if (i == 2) {
+            std::cout << "Elem at index 0: " << *HigherG_Float.findElementAtIndex(0) << "\n";
+        }
+
+
+        HigherG_Float.printSavesList();
+
+        HigherG_Float = i;
+
+        if (i == 3) {
+            HigherG_Float.setTrackedValue(0);
+        }
+    }
+
+    std::cout << *HigherG_Float.getTrackedIndex();
 
 	Vector2D<float> vec1(-5.f,5.f), vec2(2.f, 3.f);
 
@@ -77,6 +147,8 @@ int main()
 
     trackedTimer.TerminateTimer();
 
+    InitializationManager initManager;
+
     while (true)
     {
         local_DeltaTime += 0.01f;
@@ -131,9 +203,18 @@ int main()
             },
             {
                 []() {return true; },
-                []()
+                [&initManager]()
                 {
-                    RobotBase robot;
+                    RobotBase robot, robot1;
+
+                    static bool cond1 = true, cond2 = true;
+
+                    Utility::DO_ONCE([&]() {
+                        initManager.Initialize_ParallelStart({
+                            {&robot, cond1, 0.1s},
+                            {&robot1, cond2, 0.1s}
+                        });
+                    });
                 }
             }
         });

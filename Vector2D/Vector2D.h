@@ -227,27 +227,27 @@ public:
 		return X != 0 || Y != 0;
 	}
 	
-	constexpr Vector2D operator+(const Vector2D& other) const{
+	constexpr const Vector2D& operator+(const Vector2D& other) const{
 		return Vector2D(X + other.X, Y + other.Y);
 	}
 
-	constexpr Vector2D operator-(const Vector2D& other) const{
+	constexpr const Vector2D& operator-(const Vector2D& other) const{
 		return Vector2D(X - other.X, Y - other.Y);
 	}
 
-    constexpr Vector2D operator*(const Vector2D& other) const {
+    constexpr const Vector2D& operator*(const Vector2D& other) const {
         return Vector2D(X * other.X, Y * other.Y);
     }
 
-    constexpr Vector2D operator/(const Vector2D& other) const {
+    constexpr const Vector2D& operator/(const Vector2D& other) const {
         return Vector2D(X / other.X, Y / other.Y);
     }
 
-    constexpr Vector2D operator*(const numerics& value) const {
+    constexpr const Vector2D& operator*(const numerics& value) const {
         return Vector2D(X * value, Y * value);
     }
 
-    constexpr Vector2D operator/(const numerics& value) const {
+    constexpr const Vector2D& operator/(const numerics& value) const {
         return Vector2D(X / value, Y / value);
     }
 
