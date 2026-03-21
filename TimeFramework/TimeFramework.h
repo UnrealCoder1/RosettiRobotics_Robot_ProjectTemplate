@@ -2,8 +2,9 @@
 
 #include<chrono>
 #include<functional>
-#include<memory>
+#include<thread>
 #include "Vector2D.h"
+#include "MemTracker.h"
 
 //Everything works, besides the EndTimeline func, working on it, ignore thecommented code, trying to figure out if I can use it for something or not
 
@@ -11,11 +12,21 @@
 
 using ChronoDuration = std::chrono::duration<float>;
 
+using namespace std::chrono_literals;
+
 static ChronoDuration DeltaTime = 0.0s;
 
-class TimeFramework{
+class TimeFramework : public MemTracker{
 
     //std::vector<std::function<void()>> Init_FunctionsToInsert;
+
+public:
+
+    TimeFramework() {}
+
+    TimeFramework(const TimeFramework& other) : MemTracker(other) {}
+
+    TimeFramework(TimeFramework&& other) noexcept : MemTracker(std::move(other)) {}
 
 private:
 
@@ -64,8 +75,6 @@ public:
         std::this_thread::sleep_for(duration);
     }
 
-    ChronoDuration* GetDeltaTime();
-
 public:
 
     enum ETimerType : uint8_t {
@@ -76,7 +85,7 @@ public:
     };
 
     template<ETimerType Type>
-    class Timer {
+    class Timer : public MemTracker{
 
     public:
         using HighRes_Clock = std::chrono::high_resolution_clock;
@@ -84,6 +93,10 @@ public:
         Timer() {};
 
         ~Timer() {};
+
+        Timer(const Timer& other) : MemTracker(other) {}
+
+        Timer(Timer&& other) : MemTracker(std::move(other)) {}
 
         Timer() requires (Type == ETimerType::SCOPED || Type == ETimerType::ANY) {
             start_TimePoint = HighRes_Clock::now();
@@ -150,6 +163,37 @@ public:
         std::chrono::time_point<HighRes_Clock> start_TimePoint, end_TimePoint;
 
     };
+
+public:
+
+    class WorldTime : public MemTracker{
+
+    private:
+
+        std::chrono::high_resolution_clock world_clock = std::chrono::high_resolution_clock();
+
+        std::chrono::time_point<std::chrono::high_resolution_clock> start_time_point, current_time_point;
+
+    public:
+
+        WorldTime() {
+            start_time_point = world_clock.now();
+        }
+
+        WorldTime(const WorldTime& other) : MemTracker(other), start_time_point(other.start_time_point) {};
+
+        WorldTime(WorldTime&& other) noexcept : MemTracker(std::move(other)), start_time_point(std::move(other.start_time_point)) {};
+
+        static constexpr ChronoDuration* GetWorldDeltaTime() {
+            return &DeltaTime;
+        }
+
+        static void UpdateWorldDeltaTime();
+
+    };
+
 };
+
+static TimeFramework::WorldTime worldTime;
 
 static inline std::vector<TimeFramework*> Time_Objects(2);

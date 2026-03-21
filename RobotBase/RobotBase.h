@@ -22,6 +22,14 @@ private:
 
 public:
 
+    RobotBase() {}
+
+    RobotBase(const RobotBase& other) : TimeFramework(other) {};
+
+    RobotBase(RobotBase&& other) noexcept : TimeFramework(std::move(other)) {};
+
+public:
+
     R_Settings RobotConfig;
 
     bool bStartBranchExecution{ true };

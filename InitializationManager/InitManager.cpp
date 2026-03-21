@@ -1,7 +1,7 @@
 
 #include "InitManager.h"
-
-#include <thread>
+#include "Verifications.h"
+#include <mutex>
 
 #define FRAMEWORK 0
 #define CONDITION 1
@@ -9,15 +9,13 @@
 
 void InitializationManager::Initialize_ParallelStart(FrameworkList list)
 {
-    std::vector<std::thread> threads;
-
-    threads.reserve(2);
+    threads.reserve(list.size());
 
     for (FrameworkElement element : list)
     {
         threads.push_back(std::thread([&element]() {
 
-            if (std::get<FRAMEWORK>(element) == nullptr) {
+            if (std::get<FRAMEWORK>(element) != nullptr) {
 
                 std::get<FRAMEWORK>(element)->StartTimeline(
 
@@ -31,7 +29,7 @@ void InitializationManager::Initialize_ParallelStart(FrameworkList list)
         );
     }
 
-    for (int i{}; i < threads.size(); i++) {
-        threads[i].join();
+    for (auto& t : threads) {
+        if (t.joinable()) t.join();  // wait for threads
     }
 }

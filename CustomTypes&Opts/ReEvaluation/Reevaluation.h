@@ -6,6 +6,7 @@
 #include<numbers>
 #include<sstream>
 #include<algorithm>
+#include"MemTracker.h"
 
 #define DEFAULT_NUMBER_OF_MEMORIES 3
 
@@ -23,13 +24,23 @@ public:
 
     public:
 
+        T_GuardValue() : trackedValue(NULL), trackedValueCopy(trackedValue) {}
+
         T_GuardValue(const T& value) {
             this->trackedValueCopy = value;
             this->trackedValue = value;
         }
 
-        ~T_GuardValue() {
-            this->trackedValue = trackedValueCopy;
+        T_GuardValue(const T_GuardValue& other) : MemTracker(other) {
+            this->trackedValue = other.trackedValue;
+
+            this->trackedValueCopy = other.trackedValueCopy;
+        }
+
+        T_GuardValue(T_GuardValue&& other) noexcept : MemTracker(std::move(other)) {
+            this->trackedValue = std::move(other.trackedValue);
+
+            this->trackedValueCopy = std::move(other.trackedValueCopy);
         }
 
         constexpr T* GetTrackedValue() {
@@ -93,12 +104,20 @@ public:
         std::string toString() const {
             return std::to_string(trackedValue);
         }
+
+        T_GuardValue& operator=(const T_GuardValue& other) {
+                trackedValue = other.trackedValue;
+
+                trackedValueCopy = other.trackedValueCopy;
+
+            return *this;
+        }
     };
 
 public:
 
     template<typename T>
-    class T_HigherGuard {
+    class T_HigherGuard : public MemTracker{
 
     private:
 
@@ -113,6 +132,8 @@ public:
         uint8_t trackedIndex{};
 
     public:
+
+        T_HigherGuard() {}
 
         T_HigherGuard(const T& value, const uint8_t& maxNumberOfMemories) {
 
@@ -133,6 +154,53 @@ public:
 
             this->guardedValue = memories[0];
             this->currentValue = value;
+
+            trackedIndex = 0;
+        }
+
+        T_HigherGuard(const T_HigherGuard& value, const uint8_t& maxNumberOfMemories) : MemTracker(value) {
+
+            this->maxNumberOfMemories = maxNumberOfMemories;
+
+            this->memories.push_front(value.currentValue);
+
+            this->guardedValue = memories[0];
+            this->currentValue = value.currentValue;
+
+            trackedIndex = 0;
+        }
+
+        T_HigherGuard(const T_HigherGuard& value) : MemTracker(value) {
+            this->maxNumberOfMemories = DEFAULT_NUMBER_OF_MEMORIES;
+
+            this->memories.push_front(value.currentValue);
+
+            this->guardedValue = memories[0];
+            this->currentValue = value.currentValue;
+
+            trackedIndex = 0;
+        }
+
+        T_HigherGuard(T_HigherGuard&& value, const uint8_t& maxNumberOfMemories) : MemTracker(std::move(value)) {
+
+            this->maxNumberOfMemories = maxNumberOfMemories;
+
+            this->memories.push_front(std::move(value.currentValue));
+
+            this->guardedValue = memories[0];
+            this->currentValue = std::move(value.currentValue);
+
+            trackedIndex = 0;
+        }
+
+        T_HigherGuard(T_HigherGuard&& value) : MemTracker(std::move(value)) {
+
+            this->maxNumberOfMemories = DEFAULT_NUMBER_OF_MEMORIES;
+
+            this->memories.push_front(std::move(value.currentValue));
+
+            this->guardedValue = memories[0];
+            this->currentValue = std::move(value.currentValue);
 
             trackedIndex = 0;
         }
@@ -234,25 +302,23 @@ public:
                 return nullptr;
             }
 
+            this->trackedIndex = newTrackedValueIndex;
+
             this->guardedValue = memories[newTrackedValueIndex];
         }
 
         uint8_t* findIndexOfElement(const T& element) {
-            auto it = std::find(memories.begin(), memories.end(), element);
+            std::deque<float>::iterator it = std::find(memories.begin(), memories.end(), element);
 
             if (it != memories.end()) {
+                uint8_t index = static_cast<uint8_t>(it - memories.begin());
 
-                uint8_t index = static_cast<uint8_t>(std::distance(memories.begin(), it));
-
-                return &index;
+                return  &index;
 
             }
             else {
-
                 std::cout << "!%! HIGHER GUARD doesn't contain ELEMENT: " << element << " !%!\n";
-
                 return nullptr;
-
             }
         }
 
@@ -286,6 +352,30 @@ public:
             return &memories;
         }
 
+        constexpr T* getFrontElement() {
+            return &memories.front();
+        }
+
+        constexpr T* getBackElement() {
+            return &memories.back();
+        }
+
+        constexpr T* setFrontAsGuardedValue() {
+            this->guardedValue = memories.front();
+
+            this->trackedIndex = 0;
+
+            return &memories.front();
+        }
+
+        constexpr T* setBackAsGuardedValue() {
+            this->guardedValue = memories.back();
+
+            this->trackedIndex = memories[memories.size() - 1];
+
+            return &memories.back();
+        }
+
         void printSavesList() {
             for (T elem : memories)
             {
@@ -301,7 +391,7 @@ public:
             std::ostringstream oss;
 
             oss << "| Guarded value: " << guardedValue
-                << " | Tracked Index: " << trackedIndex
+                << " | Tracked Index: " << static_cast<int>(trackedIndex)
                 << " | Current value: " << currentValue
                 << " |\n";
 

@@ -17,6 +17,8 @@
 #include <array>
 #include <initializer_list>
 
+#include "MemTracker.h"
+
 #define INIT_LIST_MOVE_TO std::advance
 
 #if defined(_MSC_VER)
@@ -191,7 +193,7 @@ namespace Utility {
 };
 
 template<NumericalValue numerics>
-class Vector2D {
+class Vector2D : public MemTracker{
 
 public:
 
@@ -206,6 +208,10 @@ public:
 	constexpr Vector2D() noexcept : X(0.f), Y(0.f) {};
 
     Vector2D(numerics value) : X(value), Y(value) {};
+
+    Vector2D(const Vector2D& other) : MemTracker(other), X(other.X), Y(other.Y) { std::cout << "COPY VEC\n"; }
+
+    Vector2D(Vector2D&& other) noexcept : MemTracker(std::move(other)), X(std::move(other.X)), Y(std::move(other.Y)) { std::cout << "MOVED VEC\n"; }
 
 	constexpr numerics* getX() { return &X; }
 
@@ -249,6 +255,16 @@ public:
 
     constexpr const Vector2D& operator/(const numerics& value) const {
         return Vector2D(X / value, Y / value);
+    }
+
+    Vector2D& operator=(const Vector2D& other) {
+        if (this != &other) {
+
+            X = other.X;
+            Y = other.Y;
+            
+        }
+        return *this;
     }
 
 	static numerics dot(const Vector2D& a, const Vector2D& b)

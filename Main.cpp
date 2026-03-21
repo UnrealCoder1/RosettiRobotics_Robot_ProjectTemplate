@@ -3,10 +3,13 @@
 #include "InitManager.h"
 #include "Verifications.h"
 #include "Reevaluation.h"
+#include "MemTracker.h"
 
 //Just testing some functionality
 
 static float local_DeltaTime = 0.f;
+
+INIT_ALLOC_TRACKER
 
 class Worker {
 public:
@@ -19,7 +22,8 @@ public:
 
 int main() 
 {
-
+    
+    
     int* ptr = new int(10);
 
     int* ptr1 = Verifications::EnsureIsValid(ptr);
@@ -64,7 +68,7 @@ int main()
         std::cout << HigherG_Float.toString();
 
         if (i == 2)
-            std::cout << "Idx of elem 10: " << HigherG_Float.findIndexOfElement(10) << "\n";
+            std::cout << "Idx of elem 10: " << static_cast<int>(*HigherG_Float.findIndexOfElement(10)) << "\n";
 
 
         if (i == 4) {
@@ -81,7 +85,7 @@ int main()
         HigherG_Float = i;
 
         if (i == 3) {
-            HigherG_Float.setTrackedValue(0);
+            HigherG_Float.setTrackedValue(2);
         }
     }
 
@@ -207,17 +211,24 @@ int main()
                 {
                     RobotBase robot, robot1;
 
-                    static bool cond1 = true, cond2 = true;
+                    bool cond1 = true, cond2 = true;
+
 
                     Utility::DO_ONCE([&]() {
+                        MemTracker::PrintStats();
+
                         initManager.Initialize_ParallelStart({
                             {&robot, cond1, 0.1s},
                             {&robot1, cond2, 0.1s}
                         });
                     });
+
+
+                    
                 }
             }
         });
     }
+    
 
 }

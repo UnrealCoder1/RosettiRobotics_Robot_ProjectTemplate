@@ -31,7 +31,7 @@ void RobotBase::EVENT_Tick(float deltaTime)
 
     TimeFramework::Delay(0.1s);
 
-    std::cout << "Robot pod: " << Pos.to_string() << " | Delta time : " << TimeFramework::GetDeltaTime()->count() << " | Robot Tick |\n";
+    std::cout << "Robot pod: " << Pos.to_string() << " | Delta time : " << deltaTime << " | Robot Tick |\n";
 }
 
 //!!!!!CALL THIS INSIDE THE MAIN FILE, INSIDE "int main()"!!!!! // !!!AVOID POINTERS, STACK ALLOCATIONS ONLY!!!
