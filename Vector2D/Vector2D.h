@@ -365,7 +365,7 @@ public:
         return current + (target - current) * alpha;
     }
 
-    static const Vector2D<numerics>& Vec_InterpTo(const Vector2D<numerics>& current, const Vector2D<numerics>& target,const float& deltaTime, Numeric_CRef speed)
+    static Vector2D<numerics> Vec_InterpTo(const Vector2D<numerics>& current, const Vector2D<numerics>& target,const float& deltaTime, Numeric_CRef speed)
     {
 
         static float startDeltaTime;

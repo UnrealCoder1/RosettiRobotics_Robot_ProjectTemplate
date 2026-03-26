@@ -37,6 +37,7 @@ void TimeFramework::EVENT_BeginInit() {
 }
 
 void TimeFramework::EVENT_Tick(float delta_time) {
+
     worldTime.UpdateWorldDeltaTime();
 }
 

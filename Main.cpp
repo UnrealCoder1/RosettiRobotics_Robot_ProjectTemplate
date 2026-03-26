@@ -4,10 +4,13 @@
 #include "Verifications.h"
 #include "Reevaluation.h"
 #include "MemTracker.h"
+#include "T_Array.h"
 
 //Just testing some functionality
 
 static float local_DeltaTime = 0.f;
+
+
 
 INIT_ALLOC_TRACKER
 
@@ -22,74 +25,116 @@ public:
 
 int main() 
 {
-    
-    
-    int* ptr = new int(10);
-
-    int* ptr1 = Verifications::EnsureIsValid(ptr);
-
-    int it = 10;
-
-    Verifications::CheckIsValid(it);
-
-    std::cout << ptr1 << "\n";
-
-    ReEvaluation::T_GuardValue<float> GFloat = 10.f;
-
-    std::cout << GFloat.toString() << "\n";
-
-    GFloat = 100.f;
-
-    std::cout << "Current value: " << GFloat.toString() << " | " << "Tracked value: " << *GFloat.GetTrackedValue() << "\n";
-
-    GFloat = 32.f;
-    GFloat.SetTrackedValue(47.f);
-
-    std::cout << "Current value: " << GFloat.toString() << " | " << "Tracked value: " << *GFloat.GetTrackedValue() << "\n";
-
-    GFloat.ReInitialize();
-
-    std::cout << "Current value: " << GFloat.toString() << " | " << "Tracked value: " << *GFloat.GetTrackedValue() << "\n";
-
-    ReEvaluation::T_GuardValue<float> GFloat1{ 2.f }, GFloat2{0.f};
-
-    GFloat2 = GFloat + GFloat1;
-    GFloat2 = GFloat * GFloat1;
-    GFloat2 = GFloat - GFloat1;
-    GFloat2 = GFloat / GFloat1;
-
-    std::cout << GFloat2.toString() << "\n";
-
-    ReEvaluation::T_HigherGuard<float> HigherG_Float(10, 3);
-
-    for (int i = 1; i <= 7; i++)
     {
+        ReEvaluation::T_FixedGuard<int> FGuard(10, ReEvaluation::EFixedPositionType::FRONT, 5);
 
-        std::cout << HigherG_Float.toString();
+        for (int i = 0; i < 10; i++)
+        {
+            FGuard.PrintGuard();
 
-        if (i == 2)
-            std::cout << "Idx of elem 10: " << static_cast<int>(*HigherG_Float.findIndexOfElement(10)) << "\n";
-
-
-        if (i == 4) {
-            std::cout << "Current value: " << *HigherG_Float.getCurrentValue() << " , Guarded value: " << *HigherG_Float.getGuardedValue() << " , Tracked index: " << *HigherG_Float.getTrackedIndex() << "\n";
+            FGuard = i;
         }
 
-        if (i == 2) {
-            std::cout << "Elem at index 0: " << *HigherG_Float.findElementAtIndex(0) << "\n";
-        }
-
-
-        HigherG_Float.printSavesList();
-
-        HigherG_Float = i;
-
-        if (i == 3) {
-            HigherG_Float.setTrackedValue(2);
-        }
+        std::cout << "Time Objects: " << Time_Objects.size() << "\n";
     }
 
-    std::cout << *HigherG_Float.getTrackedIndex();
+    {
+        RobotBase robot_1, robot_2;
+
+        std::vector<TimeFramework> vec = { robot_1, robot_2 };
+
+        ObjectsManager::printCollection();
+
+        std::cout << "Contains element 1 : " << ObjectsManager::containsElement(robot_1) << "\n";
+
+        //std::cout << "Find element at index 1 : " << ObjectsManager::findElementAtIndex(1) << "\n";
+
+        std::cout << "Find index of element 1 : " << ObjectsManager::findIndexOfElement(robot_2) << "\n";
+/*
+        ObjectsManager::sort_ascending();
+
+        ObjectsManager::printCollection();
+
+        ObjectsManager::sort_descending();
+
+        ObjectsManager::printCollection();
+        */
+    }
+
+    {
+        int* ptr = new int(10);
+
+        int* ptr1 = Verifications::EnsureIsValid(ptr);
+
+        int it = 10;
+
+        Verifications::CheckIsValid(it);
+
+
+        std::cout << ptr1 << "\n";
+    }
+
+    {
+        ReEvaluation::T_GuardValue<float> GFloat = 10.f;
+
+        std::cout << GFloat.toString() << "\n";
+
+        GFloat = 100.f;
+
+        std::cout << "Current value: " << GFloat.toString() << " | " << "Tracked value: " << *GFloat.GetTrackedValue() << "\n";
+
+        GFloat = 32.f;
+        GFloat.SetTrackedValue(47.f);
+
+        std::cout << "Current value: " << GFloat.toString() << " | " << "Tracked value: " << *GFloat.GetTrackedValue() << "\n";
+
+        GFloat.ReInitialize();
+
+        std::cout << "Current value: " << GFloat.toString() << " | " << "Tracked value: " << *GFloat.GetTrackedValue() << "\n";
+
+        ReEvaluation::T_GuardValue<float> GFloat1{ 2.f }, GFloat2{ 0.f };
+
+        GFloat2 = GFloat + GFloat1;
+        GFloat2 = GFloat * GFloat1;
+        GFloat2 = GFloat - GFloat1;
+        GFloat2 = GFloat / GFloat1;
+
+        std::cout << GFloat2.toString() << "\n";
+    }
+
+    {
+        ReEvaluation::T_HigherGuard<float> HigherG_Float(10, 3);
+
+        for (int i = 1; i <= 7; i++)
+        {
+
+            std::cout << HigherG_Float.toString();
+
+            if (i == 2)
+                std::cout << "Idx of elem 10: " << static_cast<int>(HigherG_Float.findIndexOfElement(10)) << "\n";
+
+
+            if (i == 4) {
+                std::cout << "Current value: " << *HigherG_Float.getCurrentValue() << " , Guarded value: " << *HigherG_Float.getGuardedValue() << " , Tracked index: " << *HigherG_Float.getTrackedIndex() << "\n";
+            }
+
+            if (i == 2) {
+                std::cout << "Elem at index 0: " << *HigherG_Float.findElementAtIndex(0) << "\n";
+            }
+
+
+            HigherG_Float.printSavesList();
+
+            HigherG_Float = i;
+
+            if (i == 3) {
+                HigherG_Float.setTrackedValue(2);
+            }
+        }
+
+        std::cout << *HigherG_Float.getTrackedIndex();
+    }
+
 
 	Vector2D<float> vec1(-5.f,5.f), vec2(2.f, 3.f);
 
@@ -111,6 +156,7 @@ int main()
     worker.work();
 
     TimeFramework::Delay(1.0s);
+
     {
         TimeFramework::Timer<TimeFramework::SCOPED> timer;
 
@@ -131,11 +177,11 @@ int main()
         std::cout << "getPerpendicularDistanceToLine: " << Vector2D<float>::getPerpendicularDistanceToLine(Vector2D<float>(1.3f, 2.5f), Vector2D<float>(1.f, 2.f), Vector2D<float>()) << "\n";
     }
 
-    TimeFramework::Timer<TimeFramework::LIMITED> trackedTimer;
+    TimeFramework::Timer<TimeFramework::LIMITED> limitedTimer;
 
     TimeFramework::Delay(3.0s);
 
-    trackedTimer.StartTimer();
+    limitedTimer.StartTimer();
 
     Utility::FOR_LOOP_WITH_DELAY(0, 10, 1, 0.1s, [](int i) {
         std::cout << "Delayed FOR\n";
@@ -149,7 +195,56 @@ int main()
         std::cout << integer << "\n";
     });
 
-    trackedTimer.TerminateTimer();
+    limitedTimer.TerminateTimer();
+
+    {
+        TimeFramework::Timer<TimeFramework::ETimerType::TRACKED> trackedTimer{};
+
+        trackedTimer.SetupTimer(2.s, TimeFramework::EObservationMode::CONTINOUS_CODE_IMPLEMENTATION);
+    }
+
+    {
+        TimeFramework::Timer<TimeFramework::ETimerType::TASK_TRACKER> taskTimer_Constructor{ []() -> void {
+
+            std::cout << "CONSTRUCTOR -> TASK TIMER ON!\n";
+
+            TimeFramework::Delay(1.0s);
+
+        } };
+
+        TimeFramework::Timer<TimeFramework::ETimerType::TASK_TRACKER> taskTimer;
+
+        taskTimer.StartFunctionTrack([]() {
+
+            std::cout << "FUNCTION CALL -> TASK TIMER ON!\n";
+
+            TimeFramework::Delay(1.0s);
+
+            });
+    }
+
+    {
+        ReEvaluation::T_ConstLateIntializeable<int> LateInit_example = 3;
+
+        std::cout << LateInit_example.getValue() << "\n";
+
+        LateInit_example = 1;
+
+        std::cout << LateInit_example.getValue() << "\n";
+
+        LateInit_example = 12;
+
+        std::cout << LateInit_example.getValue() << "\n";
+
+        LateInit_example.LateInit(12);
+
+        std::cout << LateInit_example.getValue() << "\n";
+
+        //LateInit_example = 15; <- error example, error happens because the function LateInit has been called, and now the variable is treated as a constant
+
+        //std::cout << LateInit_example.getValue() << "\n";
+
+    }
 
     InitializationManager initManager;
 
@@ -206,7 +301,7 @@ int main()
                 }
             },
             {
-                []() {return true; },
+                []() {return false; },
                 [&initManager]()
                 {
                     RobotBase robot, robot1;

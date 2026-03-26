@@ -7,6 +7,7 @@
 #include<sstream>
 #include<algorithm>
 #include"MemTracker.h"
+#include"CollectionDefaults.h"
 
 #define DEFAULT_NUMBER_OF_MEMORIES 3
 
@@ -61,40 +62,40 @@ public:
             return *this;
         }
 
-        const T_GuardValue& operator+(const T_GuardValue& other) {
+        T_GuardValue operator+(const T_GuardValue& other) {
             return T_GuardValue{ this->trackedValue + other.trackedValue };
         }
 
-        const T_GuardValue& operator+(const T& other) {
-            return T_GuardValue{ this->trackedValue + T };
+        T_GuardValue operator+(const T& other) {
+            return T_GuardValue{ this->trackedValue + other };
         }
 
-        const T_GuardValue& operator-(const T_GuardValue& other) {
+        T_GuardValue operator-(const T_GuardValue& other) {
             return T_GuardValue{ this->trackedValue + other.trackedValue };
         }
 
-        const T_GuardValue& operator-(const T& other) {
-            return T_GuardValue{ this->trackedValue + T };
+        T_GuardValue operator-(const T& other) {
+            return T_GuardValue{ this->trackedValue + other };
         }
 
-        const T_GuardValue& operator*(const T_GuardValue& other) {
+        T_GuardValue operator*(const T_GuardValue& other) {
             return T_GuardValue{ this->trackedValue * other.trackedValue };
         }
 
-        const T_GuardValue& operator*(const T& other) {
-            return T_GuardValue{ this->trackedValue * T };
+        T_GuardValue operator*(const T& other) {
+            return T_GuardValue{ this->trackedValue * other };
         }
 
-        const T_GuardValue& operator/(const T_GuardValue& other) {
+        T_GuardValue operator/(const T_GuardValue& other) {
             return T_GuardValue{ this->trackedValue / other.trackedValue };
         }
 
-        const T_GuardValue& operator/(const T& other) {
-            return T_GuardValue{ this->trackedValue / T };
+        T_GuardValue operator/(const T& other) {
+            return T_GuardValue{ this->trackedValue / other };
         }
 
         constexpr bool operator==(const T_GuardValue& other) const {
-            return this->trackedValue == other->trackedValue;
+            return this->trackedValue == other.trackedValue;
         }
 
         constexpr bool operator==(const T& other) const {
@@ -106,9 +107,9 @@ public:
         }
 
         T_GuardValue& operator=(const T_GuardValue& other) {
-                trackedValue = other.trackedValue;
+            trackedValue = other.trackedValue;
 
-                trackedValueCopy = other.trackedValueCopy;
+            trackedValueCopy = other.trackedValueCopy;
 
             return *this;
         }
@@ -117,7 +118,7 @@ public:
 public:
 
     template<typename T>
-    class T_HigherGuard : public MemTracker{
+    class T_HigherGuard : public MemTracker, CollectionDefaults<T> {
 
     private:
 
@@ -129,7 +130,7 @@ public:
 
         T guardedValue;
 
-        uint8_t trackedIndex{};
+        size_t trackedIndex{};
 
     public:
 
@@ -210,13 +211,13 @@ public:
 
             if (memories.size() == maxNumberOfMemories) {
 
-                this->memories.pop_back();  
+                this->memories.pop_back();
             }
 
             this->memories.push_front(other.currentValue);
 
-            if (findIndexOfElement(guardedValue) != nullptr) {
-                trackedIndex = *findIndexOfElement(guardedValue);
+            if (containsElement(guardedValue)) {
+                trackedIndex = findIndexOfElement(guardedValue);
             }
             else
             {
@@ -238,8 +239,8 @@ public:
 
             this->memories.push_front(other);
 
-            if (findIndexOfElement(guardedValue) != nullptr) {
-                trackedIndex = *findIndexOfElement(guardedValue);
+            if (containsElement(guardedValue)) {
+                trackedIndex = findIndexOfElement(guardedValue);
             }
             else
             {
@@ -259,47 +260,45 @@ public:
             return this->currentValue = other;
         }
 
-        const T_HigherGuard& operator+(const T_HigherGuard& other) {
+        T_HigherGuard operator+(const T_HigherGuard& other) {
             return T_HigherGuard{ this->currentValue + other.currentValue };
         }
 
-        const T_HigherGuard& operator+(const T& other) {
+        T_HigherGuard operator+(const T& other) {
             return T_HigherGuard{ this->currentValue + other };
         }
 
-        const T_HigherGuard& operator-(const T_HigherGuard& other) {
+        T_HigherGuard operator-(const T_HigherGuard& other) {
             return T_HigherGuard{ this->currentValue + other.currentValue };
         }
 
-        const T_HigherGuard& operator-(const T& other) {
+        T_HigherGuard operator-(const T& other) {
             return T_HigherGuard{ this->currentValue + other };
         }
 
-        const T_HigherGuard& operator*(const T_HigherGuard& other) {
+        T_HigherGuard operator*(const T_HigherGuard& other) {
             return T_HigherGuard{ this->currentValue * other.currentValue };
         }
 
-        const T_HigherGuard& operator*(const T& other) {
+        T_HigherGuard operator*(const T& other) {
             return T_HigherGuard{ this->currentValue * other };
         }
 
-        const T_HigherGuard& operator/(const T_HigherGuard& other) {
+        T_HigherGuard operator/(const T_HigherGuard& other) {
             return T_HigherGuard{ this->currentValue / other.currentValue };
         }
 
-        const T_HigherGuard& operator/(const T& other) {
+        T_HigherGuard operator/(const T& other) {
             return T_HigherGuard{ this->currentValue / other };
         }
 
-        T* setTrackedValue(const uint8_t& newTrackedValueIndex) {
+        constexpr void setTrackedValue(const uint8_t& newTrackedValueIndex) {
 
             if (newTrackedValueIndex > (memories.size() - 1)) {
 
                 std::cout << "!%! Invalid input index !%!\n";
 
                 DEBUG_BREAK();
-
-                return nullptr;
             }
 
             this->trackedIndex = newTrackedValueIndex;
@@ -307,36 +306,21 @@ public:
             this->guardedValue = memories[newTrackedValueIndex];
         }
 
-        uint8_t* findIndexOfElement(const T& element) {
-            std::deque<float>::iterator it = std::find(memories.begin(), memories.end(), element);
+        size_t findIndexOfElement(const T& element) {
 
-            if (it != memories.end()) {
-                uint8_t index = static_cast<uint8_t>(it - memories.begin());
-
-                return  &index;
-
-            }
-            else {
-                std::cout << "!%! HIGHER GUARD doesn't contain ELEMENT: " << element << " !%!\n";
-                return nullptr;
-            }
+            return this->FindIndexOfElement(element, memories);
         }
 
-        constexpr T* findElementAtIndex(const uint8_t& index) {
+        T* findElementAtIndex(const size_t& index) {
 
-            if (index > (memories.size() - 1)) {
-
-                std::cout << "!%! INVALID INDEX trying to find: | index: " << index << " | !%!\n";
-
-                DEBUG_BREAK();
-
-                return nullptr;
-            }
-
-            return &memories.at(index);
+            return this->FindElementAtIndex(index, memories);
         }
 
-        constexpr uint8_t* getTrackedIndex() {
+        bool containsElement(const T& element) {
+            return this->ContainsElement(element, memories);
+        }
+
+        constexpr size_t* getTrackedIndex() {
             return &trackedIndex;
         }
 
@@ -353,37 +337,42 @@ public:
         }
 
         constexpr T* getFrontElement() {
-            return &memories.front();
+            return &memories[0];
         }
 
         constexpr T* getBackElement() {
-            return &memories.back();
+            return &memories[memories.size() - 1];
         }
 
-        constexpr T* setFrontAsGuardedValue() {
+        constexpr void setFrontAsGuardedValue() {
             this->guardedValue = memories.front();
 
             this->trackedIndex = 0;
-
-            return &memories.front();
         }
 
-        constexpr T* setBackAsGuardedValue() {
+        constexpr void setBackAsGuardedValue() {
             this->guardedValue = memories.back();
 
-            this->trackedIndex = memories[memories.size() - 1];
-
-            return &memories.back();
+            this->trackedIndex = memories.size() - 1;
         }
 
         void printSavesList() {
-            for (T elem : memories)
-            {
-                std::cout << elem << "\n";
-            }
+            this->PrintCollection(memories);
         }
 
-        void ReInitializa() {
+        void PrintGuard() {
+            std::cout << "====FIXED GUARD PRINT====\n";
+            std::cout << "Current value: " << currentValue << " | Tracked index: " << trackedIndex << " | Guarded value : " << guardedValue << "\n";
+            std::cout << "----MEMORIES----\n";
+            for (T var : memories)
+            {
+                std::cout << var << "\n";
+            }
+            std::cout << "----------------\n";
+            std::cout << "=========================\n";
+        }
+
+        void ReInitialize() {
             this->currentValue = this->guardedValue;
         }
 
@@ -391,11 +380,304 @@ public:
             std::ostringstream oss;
 
             oss << "| Guarded value: " << guardedValue
-                << " | Tracked Index: " << static_cast<int>(trackedIndex)
+                << " | Tracked Index: " << trackedIndex
                 << " | Current value: " << currentValue
                 << " |\n";
 
             return oss.str();
+        }
+    };
+
+public:
+
+    enum EFixedPositionType : uint8_t {
+        FRONT,
+        BACK
+    };
+
+    template<typename T>
+    class T_FixedGuard : public CollectionDefaults<T>{ 
+
+    private:
+
+        T currentValue;
+
+        T guardedValue;
+
+        uint16_t containerMaxSize;
+
+        size_t trackedIndex;
+
+        std::deque<T> memories;
+
+        EFixedPositionType PostionType = EFixedPositionType::FRONT;
+
+    public:
+
+        T_FixedGuard(const T& value, EFixedPositionType positionType, uint16_t max_size) : currentValue(value), guardedValue(value), PostionType(positionType), containerMaxSize(max_size) {
+            memories.push_front(value);
+
+            trackedIndex = 0;
+        }
+
+        T_FixedGuard(const T& value) : currentValue(value), guardedValue(value), trackedIndex(0), containerMaxSize(DEFAULT_NUMBER_OF_MEMORIES), PostionType(EFixedPositionType::FRONT) {
+            memories.push_front(value);
+        }
+
+    public:
+
+        T_FixedGuard operator=(const T_FixedGuard& other) {
+
+            currentValue = other.currentValue;
+
+            if (containerMaxSize == memories.size()) {
+
+                memories.pop_back();
+
+                memories.push_front(other.currentValue);
+
+                if (containsElement(guardedValue))
+                    trackedIndex = findIndexOfElem(guardedValue);
+                else {
+
+                    switch (PostionType)
+                    {
+                    case FRONT:
+                        trackedIndex = 0;
+
+                        guardedValue = memories[0];
+                        break;
+
+                    case BACK:
+                        trackedIndex = memories.size() - 1;
+
+                        guardedValue = memories[memories.size() - 1];
+                    default:
+                        break;
+                    }
+
+                }
+            }
+            else {
+                memories.push_front(other.currentValue);
+            }
+
+            return *this;
+        }
+
+        T_FixedGuard operator=(const T& other) {
+
+            currentValue = other;
+
+            if (containerMaxSize == memories.size()) {
+
+                memories.pop_back();
+
+                memories.push_front(other);
+
+                if (containsElement(guardedValue))
+                    trackedIndex = findIndexOfElem(guardedValue);
+                else {
+
+                    switch (PostionType)
+                    {
+                    case FRONT:
+                        trackedIndex = 0;
+
+                        guardedValue = memories[0];
+                        break;
+
+                    case BACK:
+                        trackedIndex = memories.size() - 1;
+
+                        guardedValue = memories[memories.size() - 1];
+                    default:
+                        break;
+                    }
+
+                }
+            }
+            else {
+                memories.push_front(other);
+            }
+
+            return *this;
+        }
+
+        constexpr bool operator==(const T_FixedGuard& other) {
+            return this->currentValue == other.guardedValue;
+        }
+
+        constexpr bool operator==(const T& other) {
+            return this->currentValue == other;
+        }
+
+        T_FixedGuard operator+(const T_FixedGuard& other) {
+            return T_FixedGuard{ this->currentValue + other.currentValue };
+        }
+
+        T_FixedGuard operator+(const T& other) {
+            return T_FixedGuard{ this->currentValue + other };
+        }
+
+        T_FixedGuard operator-(const T_FixedGuard& other) {
+            return T_FixedGuard{ this->currentValue + other.currentValue };
+        }
+
+        T_FixedGuard operator-(const T& other) {
+            return T_FixedGuard{ this->currentValue + other };
+        }
+
+        T_FixedGuard operator*(const T_FixedGuard& other) {
+            return T_FixedGuard{ this->currentValue * other.currentValue };
+        }
+
+        T_FixedGuard operator*(const T& other) {
+            return T_FixedGuard{ this->currentValue * other };
+        }
+
+        T_FixedGuard operator/(const T_FixedGuard& other) {
+            return T_FixedGuard{ this->currentValue / other.currentValue };
+        }
+
+        T_FixedGuard operator/(const T& other) {
+            return T_FixedGuard{ this->currentValue / other };
+        }
+
+        T* findElemAtIndex(const size_t& index) {
+
+            return this->FindElementAtIndex(index, memories);
+    }
+
+        bool containsElement(const T& elem) {
+
+            return this->ContainsElement(elem, memories);
+        }
+
+        size_t findIndexOfElem(const T& elem) {
+
+            return this->FindIndexOfElement(elem, memories);
+
+        }
+
+        constexpr size_t* getTrackedIndex() {
+            return &trackedIndex;
+        }
+
+        constexpr T* getGuardedValue() {
+            return &guardedValue;
+        }
+
+        constexpr T* getCurrentValue() {
+            return &currentValue;
+        }
+
+        constexpr std::deque<T>* getSaveList() {
+            return &memories;
+        }
+
+        constexpr T* getFrontElement() {
+            return &memories[0];
+        }
+
+        constexpr T* getBackElement() {
+            return &memories[memories.size() - 1];
+        }
+
+        void ReInitialize() {
+            this->currentValue = this->guardedValue;
+        }
+
+        void PrintGuard() {
+            std::cout << "====FIXED GUARD PRINT====\n";
+            std::cout << "Current value: " << currentValue << " | Tracked index: " << trackedIndex << " | Guarded value : " << guardedValue << "\n";
+            std::cout << "----MEMORIES----\n";
+            for(T var : memories)
+            {
+                std::cout << var << "\n";
+            }
+            std::cout << "----------------\n";
+            std::cout << "=========================\n";
+        }
+
+        void printSavesList() {
+            this->PrintCollection(memories);
+        }
+
+        std::string toString() {
+            std::ostringstream oss;
+
+            oss << "| Guarded value: " << guardedValue
+                << " | Tracked Index: " << trackedIndex
+                << " | Current value: " << currentValue
+                << " |\n";
+
+            return oss.str();
+        }
+    };
+
+public:
+
+    template<typename T>
+    class T_ConstLateIntializeable {
+
+        T value;
+
+        bool bInitialized = false;
+
+    private:
+
+        bool checkIfInitilaized() {
+            if (bInitialized) {
+                throw std::runtime_error("!%! LateInit called MORE THAN ONCE !&!");
+
+                return true;
+            }
+
+            return false;
+        }
+
+    public:
+
+        T_ConstLateIntializeable(const T& value) : value(value) {};
+
+        T_ConstLateIntializeable() {}
+
+        void LateInit(T&& other) {
+            checkIfInitilaized();
+
+            bInitialized = true;
+
+            this->value = other;
+        }
+
+        const T getValue() const {
+            return value;
+        }
+
+        bool operator==(const T& other) {
+            this->value == other;
+        }
+
+        bool operator==(const T_ConstLateIntializeable& other) {
+            this->value == other.getValue();
+        }
+
+        T_ConstLateIntializeable operator=(const T& other) {
+
+            checkIfInitilaized();
+
+            this->value = other;
+
+            return T_ConstLateIntializeable{ other };
+        }
+
+        T_ConstLateIntializeable operator=(const T_ConstLateIntializeable& other) {
+            checkIfInitilaized();
+
+            this->value = other.getValue();
+
+            return T_ConstLateIntializeable{ other.getValue() };
         }
     };
 

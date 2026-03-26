@@ -3,10 +3,16 @@
 #include<chrono>
 #include<functional>
 #include<thread>
+#include<type_traits>
+#include<string>
+
 #include "Vector2D.h"
 #include "MemTracker.h"
+#include "CollectionDefaults.h"
 
-//Everything works, besides the EndTimeline func, working on it, ignore thecommented code, trying to figure out if I can use it for something or not
+//Everything works, besides the EndTimeline func, working on it
+
+#define FIND_VAR_NAME(x) #x
 
 #define MIN_TIME_STEP 0.03f
 
@@ -14,23 +20,94 @@ using ChronoDuration = std::chrono::duration<float>;
 
 using namespace std::chrono_literals;
 
-static ChronoDuration DeltaTime = 0.0s;
+static inline ChronoDuration DeltaTime = 0.0s;
+
+static inline int ID_Counter;
 
 class TimeFramework : public MemTracker{
 
-    //std::vector<std::function<void()>> Init_FunctionsToInsert;
-
 public:
 
-    TimeFramework() {}
+    TimeFramework() {
+        name = ("Timeline NAME_NONE_" + std::to_string(this->ID));
 
-    TimeFramework(const TimeFramework& other) : MemTracker(other) {}
+        ID = ID_Counter;
 
-    TimeFramework(TimeFramework&& other) noexcept : MemTracker(std::move(other)) {}
+        std::cout << "COUNTER: " << ID << "\n";
+
+        ID_Counter += 1;
+    }
+
+    TimeFramework(const TimeFramework& other, const std::string& name) : MemTracker(other), name(name) {
+        ID = ID_Counter;
+
+        std::cout << "COUNTER: " << ID << "\n";
+
+        ID_Counter += 1;
+    }
+
+    TimeFramework(const TimeFramework& other) : MemTracker(other), name(("Timeline NAME_NONE_" + std::to_string(this->ID))) {
+        ID = ID_Counter;
+
+        std::cout << "COUNTER: " << ID << "\n";
+
+        ID_Counter += 1;
+    }
 
 private:
 
+    std::string name;
+
+    int ID;
+
     bool bForcedEnd = false;
+
+public:
+
+    friend std::ostream& operator<<(std::ostream& os, const TimeFramework& tf) {
+        os << "Timeline ID: " << tf.ID << " | Timeline NAME: " << tf.name; // Use tf.ID to access the instance data
+        return os;
+    }
+
+    bool operator==(const TimeFramework& other) const {
+        return this->ID == other.ID;
+    }
+
+    bool operator==(const int& other) const {
+        return this->ID == other;
+    }
+
+    bool operator>(const TimeFramework& other) const {
+        return this->ID > other.ID;
+    }
+
+    bool operator>(const int& other) const {
+        return this->ID > other;
+    }
+
+    bool operator<(const TimeFramework& other) const {
+        return this->ID < other.ID;
+    }
+
+    bool operator<(const int& other) const {
+        return this->ID < other;
+    }
+
+    bool operator>=(const TimeFramework& other) const {
+        return this->ID >= other.ID;
+    }
+
+    bool operator>=(const int& other) const {
+        return this->ID >= other;
+    }
+
+    bool operator<=(const TimeFramework& other) const {
+        return this->ID <= other.ID;
+    }
+
+    bool operator<=(const int& other) const {
+        return this->ID <= other;
+    }
 
 public:
 
@@ -46,28 +123,6 @@ protected:
 
     void EndTimeline();
 
-    /*
-    template<std::invocable Func>
-    static void InsertInitFunctions(RobotBase* robot, std::initializer_list<Func> functions) {
-        for (Func f : functions)
-        {
-            if (robot)
-                *robot->Init_FunctionsToInsert.push_back(f);
-            else DEBUG_BREAK();
-        }
-    }
-
-    template<std::invocable Func>
-    static void InsertInitFunctions(RobotBase* robot, std::vector<Func> functions) {
-        for (Func f : functions)
-        {
-            if (robot)
-                *robot->Init_FunctionsToInsert.push_back(f);
-            else DEBUG_BREAK();
-        }
-    }
-    */
-
 public:
 
     template<std::floating_point f_point>
@@ -81,7 +136,14 @@ public:
         SCOPED,
         TRACKED,
         LIMITED,
+        TASK_TRACKER,
         ANY
+    };
+
+    enum class EObservationMode : uint8_t{
+        CONTINOUS_CODE_IMPLEMENTATION,
+        PARALLEL_CODE_IMPLEMENTATION
+    //    EXPLICITLY_PARALLEL  <- optional, thinking of further development
     };
 
     template<ETimerType Type>
@@ -97,6 +159,11 @@ public:
         Timer(const Timer& other) : MemTracker(other) {}
 
         Timer(Timer&& other) : MemTracker(std::move(other)) {}
+
+        template<typename Func> requires (std::is_invocable_v<Func>)
+        Timer(Func&& func) requires (Type == ETimerType::TASK_TRACKER) {
+            StartFunctionTrack(func);
+        }
 
         Timer() requires (Type == ETimerType::SCOPED || Type == ETimerType::ANY) {
             start_TimePoint = HighRes_Clock::now();
@@ -114,32 +181,71 @@ public:
             Stop();
         }
 
-        //Doesn't work properly:
-        void SetupTimer(const ChronoDuration& trackedTime) requires (Type == ETimerType::TRACKED || Type == ETimerType::ANY) {
+        void SetupTimer(const ChronoDuration& trackedTime, EObservationMode observationMode ) requires (Type == ETimerType::TRACKED || Type == ETimerType::ANY) {
 
             static long long start;
 
-            Utility::DO_ONCE([this]() mutable {
+            Utility::DO_ONCE([&]() mutable {
                 start_TimePoint = HighRes_Clock::now();
 
-                start = start_TimePoint.time_since_epoch().count();
+                start = std::chrono::duration_cast<std::chrono::microseconds>(start_TimePoint.time_since_epoch()).count();
             });
 
-            auto now = HighRes_Clock::now();
+            static long long elapsed_time, now;
 
-            long long nowTime = now.time_since_epoch().count();
+            switch (observationMode)
+            {
+            case TimeFramework::EObservationMode::CONTINOUS_CODE_IMPLEMENTATION :
 
-            auto elapsed = (nowTime - start) * 10.f;
+                while (elapsed_time < (trackedTime.count() * 1000.f))
+                {
+                    now = std::chrono::duration_cast<std::chrono::microseconds>(HighRes_Clock::now().time_since_epoch()).count();
 
-            std::cout << "TIME:" << elapsed << "\n";
+                    elapsed_time = (now - start) / 1000;
+                }
 
-            if (elapsed >= trackedTime.count()) {
-                Utility::DO_ONCE([&]() {std::cout << "TIME:" << elapsed << "\n"; });
-                return;
+                end_TimePoint = HighRes_Clock::now();
+
+                std::cout << "Timer ended: " << elapsed_time << " | Target time: " << trackedTime.count() * 1000.f << "\n";
+
+                break;
+
+            case TimeFramework::EObservationMode::PARALLEL_CODE_IMPLEMENTATION :
+
+                now = std::chrono::duration_cast<std::chrono::microseconds>(HighRes_Clock::now().time_since_epoch()).count();
+
+                elapsed_time = (now - start) / 1000;
+
+                if (elapsed_time >= (trackedTime.count() * 1000.f)) {
+
+                    end_TimePoint = HighRes_Clock::now();
+
+                    std::cout << "Timer ended: " << elapsed_time << " | Target time: " << trackedTime.count() * 1000.f << "\n";
+                }
+
+                break;
+            default:
+                break;
             }
 
         }
-        //========================================================================================================================
+
+        template<typename Func> requires (std::is_invocable_v<Func>)
+        void StartFunctionTrack(Func&& func) requires (Type == ETimerType::TASK_TRACKER){
+            start_TimePoint = HighRes_Clock::now();
+
+            auto start = std::chrono::duration_cast<std::chrono::milliseconds>(start_TimePoint.time_since_epoch());
+
+            func();
+
+            end_TimePoint = HighRes_Clock::now();
+
+            auto end = std::chrono::duration_cast<std::chrono::milliseconds>(end_TimePoint.time_since_epoch());
+
+            auto elapsed = end - start;
+
+            std::cout << "Time PASSED: " << elapsed << "\n";
+        }
 
     private:
 
@@ -194,6 +300,49 @@ public:
 
 };
 
-static TimeFramework::WorldTime worldTime;
+static std::vector<TimeFramework> Time_Objects(2);
 
-static inline std::vector<TimeFramework*> Time_Objects(2);
+class ObjectsManager : public CollectionDefaults<TimeFramework> {
+
+public:
+
+    ObjectsManager() {};
+
+    static bool containsElement(const TimeFramework& element) {
+        return CollectionDefaults<TimeFramework>::ContainsElement(element, Time_Objects);
+    }
+
+    static TimeFramework* findElementAtIndex(const size_t& index) {
+        return CollectionDefaults<TimeFramework>::FindElementAtIndex(index, Time_Objects);
+    }
+
+    static size_t findIndexOfElement(const TimeFramework& element) {
+        return CollectionDefaults<TimeFramework>::FindIndexOfElement(element, Time_Objects);
+    }
+
+    /*
+    static void sort_ascending() {
+        CollectionDefaults<TimeFramework>::Sort_Ascending(Time_Objects);
+    }
+
+    static void sort_descending() {
+        CollectionDefaults<TimeFramework>::Sort_Descending(Time_Objects);
+    }
+
+    template<Func CompFunction>
+    static void sort(CompFunction&& comparisonFunction) {
+        CollectionDefaults<TimeFramework>::Sort(Time_Objects, comparisonFunction);
+    }
+    */
+
+    static void printCollection() {
+
+        std::cout << "==== OBJECTS MANAGER PRINT ====\n";
+
+        CollectionDefaults<TimeFramework>::PrintCollection(Time_Objects);
+    }
+
+};
+
+static inline TimeFramework::WorldTime worldTime;
+
