@@ -13,7 +13,7 @@ void TimeFramework::Tick(bool& bEndCondition, ChronoDuration delay_step) {
 
         Utility::DO_ONCE([=]() {EVENT_BeginInit(); });
 
-        EVENT_Tick(DeltaTime.count());
+        EVENT_Tick(DeltaTime);
 
         if (delay_step != 0.0s) {
             std::this_thread::sleep_for(delay_step);
@@ -38,10 +38,9 @@ void TimeFramework::EVENT_BeginInit() {
 
 void TimeFramework::EVENT_Tick(float delta_time) {
 
-    worldTime.UpdateWorldDeltaTime();
 }
 
-void TimeFramework::WorldTime::UpdateWorldDeltaTime()
+void TimeFramework::WorldTime::UpdateWorldDeltaTime(float& var)
 {
     worldTime.current_time_point = worldTime.world_clock.now();
 
@@ -49,9 +48,9 @@ void TimeFramework::WorldTime::UpdateWorldDeltaTime()
 
     auto end = std::chrono::duration_cast<std::chrono::milliseconds>(worldTime.current_time_point.time_since_epoch()).count();
 
-    auto duration = (end - start) / 1000.f;
+    float duration = (end - start) / 1000.f;
 
     std::cout << "Elapsed: " << duration << " !!/!! \n";
 
-    DeltaTime = std::chrono::duration<float>(duration);
+    var = duration;
 }

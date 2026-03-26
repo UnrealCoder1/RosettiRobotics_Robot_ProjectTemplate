@@ -352,16 +352,17 @@ public:
         }
     }
 
-    static numerics Num_InterpTo(numerics& current, Numeric_CRef target,const float& deltaTime, Numeric_CRef speed)
+    static numerics Num_InterpTo(numerics& current, Numeric_CRef target, const float& deltaTime, Numeric_CRef speed)
     {
 
         static float startDeltaTime;
 
-        Utility::DO_ONCE([deltaTime]() mutable {startDeltaTime = deltaTime; });
+        Utility::DO_ONCE([deltaTime]() {startDeltaTime = deltaTime; });
 
-        float localDeltaTime =  deltaTime - startDeltaTime;
+        float alpha = std::clamp((deltaTime - startDeltaTime) * speed, 0.0f, 1.0f);
 
-        float alpha = std::clamp(localDeltaTime * speed, 0.0f, 1.0f);
+        std::cout << "Time " << deltaTime << "\n";
+
         return current + (target - current) * alpha;
     }
 

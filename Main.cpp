@@ -5,11 +5,9 @@
 #include "Reevaluation.h"
 #include "MemTracker.h"
 #include "T_Array.h"
+#include "TimeFramework.h"
 
 //Just testing some functionality
-
-static float local_DeltaTime = 0.f;
-
 
 
 INIT_ALLOC_TRACKER
@@ -250,16 +248,17 @@ int main()
 
     while (true)
     {
-        local_DeltaTime += 0.01f;
+
+        TimeFramework::WorldTime::UpdateWorldDeltaTime(*TimeFramework::WorldTime::GetWorldDeltaTime());
 
         Utility::STATIC_SWITCH<std::function<void()>>({
             {
                 []() {return false; },
-                []() {std::cout << Vector2D<float>::mapRangeUnclamped(local_DeltaTime, 0.f, 5.f, 0.f, 1000.f) << "\n"; }
+                []() {std::cout << Vector2D<float>::mapRangeUnclamped(*TimeFramework::WorldTime::GetWorldDeltaTime(), 0.f, 5.f, 0.f, 1000.f) << "\n"; }
             },
             {
                 []() {return false; },
-                []() {std::cout << Vector2D<float>::mapRangeClamped(local_DeltaTime, 0.f, 5.f, 0.f, 1000.f) << "\n"; }
+                []() {std::cout << Vector2D<float>::mapRangeClamped(*TimeFramework::WorldTime::GetWorldDeltaTime(), 0.f, 5.f, 0.f, 1000.f) << "\n"; }
             },
             {
                 []() {return false; },
@@ -282,11 +281,12 @@ int main()
                 []() {return false; },
                 []()
                 {
+
                     static float var(0.f);
 
                     TimeFramework::Delay(0.1s);
 
-                    std::cout << Vector2D<float>::Num_InterpTo(var, 100.f, local_DeltaTime, 1.3f) << "\n";
+                    std::cout << Vector2D<float>::Num_InterpTo(var, 100.f, *TimeFramework::WorldTime::GetWorldDeltaTime(), 0.5f) << "\n";
                 }
             },
             {
@@ -297,7 +297,7 @@ int main()
 
                     TimeFramework::Delay(0.1s);
 
-                    std::cout << Vector2D<float>::Vec_InterpTo(var, Vector2D<float>(100.f), local_DeltaTime, 1.3f).to_string() << "\n";
+                    std::cout << Vector2D<float>::Vec_InterpTo(var, Vector2D<float>(100.f), *TimeFramework::WorldTime::GetWorldDeltaTime(), 1.3f).to_string() << "\n";
                 }
             },
             {

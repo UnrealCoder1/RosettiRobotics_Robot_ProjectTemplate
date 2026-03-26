@@ -20,7 +20,7 @@ using ChronoDuration = std::chrono::duration<float>;
 
 using namespace std::chrono_literals;
 
-static inline ChronoDuration DeltaTime = 0.0s;
+static float DeltaTime = 0.0f;
 
 static inline int ID_Counter;
 
@@ -288,13 +288,11 @@ public:
 
         WorldTime(const WorldTime& other) : MemTracker(other), start_time_point(other.start_time_point) {};
 
-        WorldTime(WorldTime&& other) noexcept : MemTracker(std::move(other)), start_time_point(std::move(other.start_time_point)) {};
-
-        static constexpr ChronoDuration* GetWorldDeltaTime() {
+        static constexpr float* GetWorldDeltaTime() {
             return &DeltaTime;
         }
 
-        static void UpdateWorldDeltaTime();
+        static void UpdateWorldDeltaTime(float& var);
 
     };
 
