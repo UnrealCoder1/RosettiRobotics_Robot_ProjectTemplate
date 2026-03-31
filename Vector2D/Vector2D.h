@@ -51,7 +51,10 @@ namespace Utility {
         if (called == false) {
             called = true;
 
-            if (reset == true) called = false;
+            if (reset == true) {
+                called = false;
+                reset = false;
+            } 
 
             return func();
         }
@@ -77,9 +80,13 @@ namespace Utility {
         if (callTimes < times) {
             callTimes += 1;
 
-            if (reset == true && callTimes >= (times - 1)) {
-                callTimes = 0;
-            }
+            return func();
+        }
+        else if (reset) {
+
+            callTimes = 1;
+
+            reset = false;
 
             return func();
         }
@@ -93,6 +100,25 @@ namespace Utility {
 
         if (callTimes < times) {
             callTimes += 1;
+
+            return func();
+        }
+
+    }
+
+    template<std::invocable Func>
+    std::invoke_result_t<Func> DO_N_TIMES(Func&& func, const uint16_t& times, std::function<bool()> reset_condition)
+    {
+        static uint16_t callTimes{};
+
+        if (callTimes < times) {
+
+            callTimes += 1;
+
+            return func();
+        }
+        else if (reset_condition()) {
+            callTimes = 1;
 
             return func();
         }
@@ -190,6 +216,30 @@ namespace Utility {
     }
     //==============================================
 
+    constexpr double Calculte_PID_Simplified(double Kp, double Ki, double Kd, double delta_time, double expected, double actual) noexcept
+    {
+        double error = expected - actual;
+
+        double integral = error * delta_time;
+
+        double derivative = (delta_time != 0) ? error / delta_time : 0;
+
+        return Kp * error + Ki * integral + Kd * derivative;
+    }
+
+    constexpr double Calculate_PID_OvertimeStorage(double Kp, double Ki, double Kd, double delta_time, double expected, double actual, double& prev_error, double& integral) noexcept
+    {
+        double error = expected - actual;
+
+        integral += error * delta_time;
+
+        double derivative = (error - prev_error) / delta_time;
+
+        prev_error = error;
+
+        return Kp * error + Ki * integral + Kd * derivative;
+    }
+
 };
 
 template<NumericalValue numerics>
@@ -209,9 +259,9 @@ public:
 
     Vector2D(numerics value) : X(value), Y(value) {};
 
-    Vector2D(const Vector2D& other) : MemTracker(other), X(other.X), Y(other.Y) { std::cout << "COPY VEC\n"; }
+    Vector2D(const Vector2D& other) : MemTracker(other), X(other.X), Y(other.Y) {}
 
-    Vector2D(Vector2D&& other) noexcept : MemTracker(std::move(other)), X(std::move(other.X)), Y(std::move(other.Y)) { std::cout << "MOVED VEC\n"; }
+    Vector2D(Vector2D&& other) noexcept : MemTracker(std::move(other)), X(std::move(other.X)), Y(std::move(other.Y)) {}
 
 	constexpr numerics* getX() { return &X; }
 
