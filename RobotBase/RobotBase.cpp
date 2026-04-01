@@ -44,7 +44,6 @@ void RobotBase::Terminate()
 {
     EndTimeline();
     bStartBranchExecution = false;
-    DeltaTime = 0.0s;
 }
 
 //--------------------------------------------------------------------------

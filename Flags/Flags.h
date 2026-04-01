@@ -1,29 +1,56 @@
 #pragma once
 
-#include "RobotBase.h"
-#include <memory>
+#define FLAG_TIME_FRAMEWORK
 
-//Still working on it! Have to talk about config method in order to finish this system
+#define FLAG_VECTOR_2D_ANGLES
+#define FLAG_VECTOR_2D_VECTOR_MATH
+#define FLAG_VECTOR_2D_DISTANCES
+#define FLAG_VECTOR_2D_INTERPOLATION
+#define FLAG_VECTOR_2D_PID_CALCULATION
 
-#define __TIME_FRAMEWORK__
+#define FLAG_ROBOT_BASE
 
-enum EFlags : uint16_t
-{
-    TimeFrameork,
-    Distances,
-    Angles,
-    MoveConstraints
-};
+#ifdef FLAG_TIME_FRAMEWORK
 
-class FlagsCollection {
-public:
-    std::vector<EFlags> flags;
+#define FLAG_INCLUSION_TIME_FRAMEWORK
 
-    std::shared_ptr<RobotBase> robot;
+#endif // FLAG_TIME_FRAMEWORK
 
-#ifdef __TIME_FRAMEWORK__
+#ifdef FLAG_VECTOR_2D_VECTOR_MATH
 
-#endif // __TIME_FRAMEWORK__
+#define VECTOR_2D_ENABLE_VECTOR_MATH
+
+#endif // FLAG_VECTOR_2D_VECTOR_MATH
+
+#ifdef FLAG_VECTOR_2D_DISTANCES
+
+#define VECTOR_2D_ENABLE_DISTANCES
+
+#endif
+
+#ifdef FLAG_VECTOR_2D_INTERPOLATION
+
+#define VECTOR_2D_ENABLE_INTERPOLATION
+
+#endif
+
+#ifdef FLAG_VECTOR_2D_PID_CALCULATION
+
+#define VECTOR_2D_ENABLE_PID_CALCULATION
+
+#endif
+
+#ifdef FLAG_VECTOR_2D_ANGLES
+
+#define VECTOR_2D_ENABLE_ANGLES
+
+#endif // FLAG_VECTOR_2D_ANGLES
+
+#ifdef FLAG_ROBOT_BASE
+
+#define FLAG_INCLUSION_ROBOT_BASE
+
+#endif // DEBUG
 
 
-};
+

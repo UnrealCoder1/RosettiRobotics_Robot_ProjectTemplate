@@ -18,6 +18,7 @@
 #include <initializer_list>
 
 #include "MemTracker.h"
+#include "Flags.h"
 
 #define INIT_LIST_MOVE_TO std::advance
 
@@ -54,7 +55,7 @@ namespace Utility {
             if (reset == true) {
                 called = false;
                 reset = false;
-            } 
+            }
 
             return func();
         }
@@ -73,7 +74,7 @@ namespace Utility {
     }
 
     template<std::invocable Func>
-    std::invoke_result_t<Func> DO_N_TIMES(Func&& func, bool& reset,const uint16_t& times)
+    std::invoke_result_t<Func> DO_N_TIMES(Func&& func, bool& reset, const uint16_t& times)
     {
         static uint16_t callTimes{};
 
@@ -126,22 +127,22 @@ namespace Utility {
     }
 
     template<std::invocable<int> Func>
-    void FOR_LOOP_WITH_DELAY(int loopStart, int loopEnd,const int step, const std::chrono::duration<float>& delay, Func&& loop_body) {
+    void FOR_LOOP_WITH_DELAY(int loopStart, int loopEnd, const int step, const std::chrono::duration<float>& delay, Func&& loop_body) {
 
         static int index = loopStart;
 
         loop_body(index);
 
-        index+= step;
+        index += step;
 
         std::this_thread::sleep_for(delay);
 
-        if (index < loopEnd )
+        if (index < loopEnd)
             FOR_LOOP_WITH_DELAY(index, loopEnd, step, delay, loop_body);
-        
+
     }
 
-    template<std::invocable Func , std::invocable Cond>
+    template<std::invocable Func, std::invocable Cond>
     void WHILE_LOOP_WITH_DELAY(Cond&& condition, const std::chrono::duration<float>& delay, Func&& loop_body) {
 
         loop_body();
@@ -149,7 +150,7 @@ namespace Utility {
 
         if (condition())
             WHILE_LOOP_WITH_DELAY(condition, delay, loop_body);
-        
+
     }
 
     template<std::invocable FuncA, std::invocable FuncB>
@@ -216,6 +217,8 @@ namespace Utility {
     }
     //==============================================
 
+#ifdef VECTOR_2D_ENABLE_PID_CALCULATION
+
     constexpr double Calculte_PID_Simplified(double Kp, double Ki, double Kd, double delta_time, double expected, double actual) noexcept
     {
         double error = expected - actual;
@@ -240,22 +243,24 @@ namespace Utility {
         return Kp * error + Ki * integral + Kd * derivative;
     }
 
+#endif // VECTOR_2D_ENABLE_PID_CALCULATION
+
 };
 
 template<NumericalValue numerics>
-class Vector2D : public MemTracker{
+class Vector2D : public MemTracker {
 
 public:
 
-	numerics X, Y;
+    numerics X, Y;
 
 public:
 
     using Numeric_CRef = const numerics&;
 
-	Vector2D(numerics x, numerics y) : X(x), Y(y) {};
+    Vector2D(numerics x, numerics y) : X(x), Y(y) {};
 
-	constexpr Vector2D() noexcept : X(0.f), Y(0.f) {};
+    constexpr Vector2D() noexcept : X(0.f), Y(0.f) {};
 
     Vector2D(numerics value) : X(value), Y(value) {};
 
@@ -263,33 +268,33 @@ public:
 
     Vector2D(Vector2D&& other) noexcept : MemTracker(std::move(other)), X(std::move(other.X)), Y(std::move(other.Y)) {}
 
-	constexpr numerics* getX() { return &X; }
+    constexpr numerics* getX() { return &X; }
 
-	constexpr numerics* getY() { return &Y; }
+    constexpr numerics* getY() { return &Y; }
 
     constexpr const numerics& getX() const { return X; }
 
     constexpr const numerics& getY() const { return Y; }
 
-	void setX(const numerics& X) {
-		this->X = X;
-	}
+    void setX(const numerics& X) {
+        this->X = X;
+    }
 
-	void setY(const numerics& Y) {
-		this->Y = Y;
-	}
+    void setY(const numerics& Y) {
+        this->Y = Y;
+    }
 
-	explicit operator bool() const {
-		return X != 0 || Y != 0;
-	}
-	
-	constexpr const Vector2D& operator+(const Vector2D& other) const{
-		return Vector2D(X + other.X, Y + other.Y);
-	}
+    explicit operator bool() const {
+        return X != 0 || Y != 0;
+    }
 
-	constexpr const Vector2D& operator-(const Vector2D& other) const{
-		return Vector2D(X - other.X, Y - other.Y);
-	}
+    constexpr const Vector2D& operator+(const Vector2D& other) const {
+        return Vector2D(X + other.X, Y + other.Y);
+    }
+
+    constexpr const Vector2D& operator-(const Vector2D& other) const {
+        return Vector2D(X - other.X, Y - other.Y);
+    }
 
     constexpr const Vector2D& operator*(const Vector2D& other) const {
         return Vector2D(X * other.X, Y * other.Y);
@@ -312,54 +317,64 @@ public:
 
             X = other.X;
             Y = other.Y;
-            
+
         }
         return *this;
     }
 
-	static numerics dot(const Vector2D& a, const Vector2D& b)
-	{
-		return a.getX() * b.getX() + a.getY() * b.getY();
-	}
+#ifdef VECTOR_2D_ENABLE_ANGLES
 
-	static numerics cross(const Vector2D& a, const Vector2D& b)
-	{
-		return a.getX() * b.getY() - a.getY() * b.getX();
-	}
+    static float deg2rad(const numerics& degrees)
+    {
+        return degrees * std::numbers::pi_v<float> / 180.0f;
+    }
 
-	static float deg2rad(const numerics& degrees)
-	{
-		return degrees * std::numbers::pi_v<float> / 180.0f;
-	}
+    static float rad2deg(const numerics& radians)
+    {
+        return radians * 180.0f / std::numbers::pi_v<float>;
+    }
 
-	static float rad2deg(const numerics& radians)
-	{
-		return radians * 180.0f / std::numbers::pi_v<float>;
-	}
+    constexpr static float getAngle_Radians(const Vector2D& vec1, const Vector2D& vec2) {
+        return std::atan2(cross(vec1, vec2), dot(vec1, vec2));
+    }
 
-	std::string to_string() const {
-		return "(" + std::to_string(X) + ", " + std::to_string(Y) + ")";
-	}
+    constexpr static float getAngle_Degrees(const Vector2D& vec1, const Vector2D& vec2) {
+        return rad2deg(getAngle_Radians(vec1, vec2));
+    }
 
-	static double getLength(const Vector2D<numerics>& vec) {
-		return (double)(std::sqrt(vec.X * vec.X + vec.Y * vec.Y));
-	}
+    constexpr static Vector2D<numerics> angleToVector(const float& angle) {
+        return Vector2D<numerics>(std::cos(deg2rad(angle)), std::sin(deg2rad(angle)));
+    }
 
-	constexpr static float getAngle_Radians(const Vector2D& vec1, const Vector2D& vec2) {
-		return std::atan2(cross(vec1, vec2), dot(vec1, vec2));
-	}
+#endif // 
 
-	constexpr static float getAngle_Degrees(const Vector2D& vec1, const Vector2D& vec2) {
-		return rad2deg(getAngle_Radians(vec1, vec2));
-	}
+#ifdef VECTOR_2D_ENABLE_DISTANCES
 
-	constexpr static float getDistance(const Vector2D& point1, const Vector2D& point2) {
-		return std::sqrt(std::pow((point2.X - point1.X), 2.f) + std::pow((point2.Y - point1.Y), 2.f));
-	}
+    static double getLength(const Vector2D<numerics>& vec) {
+        return (double)(std::sqrt(vec.X * vec.X + vec.Y * vec.Y));
+    }
 
-	constexpr static double getPerpendicularDistanceToLine(const Vector2D& lineStart, const Vector2D& lineEnd, const Vector2D& point) {
-		return std::abs((lineEnd.Y - lineStart.Y) * point.X - (lineEnd.X - lineStart.X) * point.Y + lineEnd.X * lineStart.Y - lineEnd.Y * lineStart.X) / std::sqrt((std::pow((lineEnd.Y - lineStart.Y), 2.f) + std::pow((lineEnd.X - lineStart.X), 2.f)));
-	}
+    constexpr static float getDistance(const Vector2D& point1, const Vector2D& point2) {
+        return std::sqrt(std::pow((point2.X - point1.X), 2.f) + std::pow((point2.Y - point1.Y), 2.f));
+    }
+
+    constexpr static double getPerpendicularDistanceToLine(const Vector2D& lineStart, const Vector2D& lineEnd, const Vector2D& point) {
+        return std::abs((lineEnd.Y - lineStart.Y) * point.X - (lineEnd.X - lineStart.X) * point.Y + lineEnd.X * lineStart.Y - lineEnd.Y * lineStart.X) / std::sqrt((std::pow((lineEnd.Y - lineStart.Y), 2.f) + std::pow((lineEnd.X - lineStart.X), 2.f)));
+    }
+
+#endif // VECTOR_2D_ENABLE_DISTANCES
+
+#ifdef VECTOR_2D_ENABLE_VECTOR_MATH
+
+    static numerics dot(const Vector2D& a, const Vector2D& b)
+    {
+        return a.getX() * b.getX() + a.getY() * b.getY();
+    }
+
+    static numerics cross(const Vector2D& a, const Vector2D& b)
+    {
+        return a.getX() * b.getY() - a.getY() * b.getX();
+    }
 
     constexpr static numerics mapRangeUnclamped(Numeric_CRef value, Numeric_CRef inA, Numeric_CRef inB, Numeric_CRef outA, Numeric_CRef outB) {
         return outA + (value - inA) * (outB - outA) / (inB - inA);
@@ -367,22 +382,6 @@ public:
 
     constexpr static numerics mapRangeClamped(Numeric_CRef value, Numeric_CRef inA, Numeric_CRef inB, Numeric_CRef outA, Numeric_CRef outB) {
         return std::clamp((outA + (value - inA) * (outB - outA) / (inB - inA)), outA, outB);
-    }
-
-    constexpr static Vector2D<numerics> angleToVector(const float& angle) {
-        return Vector2D<numerics>(std::cos(deg2rad(angle)), std::sin(deg2rad(angle)));
-    }
-
-    inline constexpr static Vector2D<float> getRightVector() noexcept {
-        return Vector2D<float>(1.f, 0.f);
-    }
-
-    inline constexpr static Vector2D<float> getUpVector() noexcept {
-        return Vector2D<float>(0.f, 1.f);
-    }
-
-    inline constexpr static Vector2D<float> ZeroVector() noexcept {
-        return Vector2D<float>(NULL, NULL);
     }
 
     constexpr static std::optional<Vector2D<numerics>> getIntersectionPoint(const Vector2D<numerics>& D1, const Vector2D<numerics>& D2, const Vector2D<numerics>& P1, const Vector2D<numerics>& P2) {
@@ -402,6 +401,11 @@ public:
         }
     }
 
+
+#endif // VECTOR_2D_ENABLE_VECTOR_MATH
+
+#ifdef VECTOR_2D_ENABLE_INTERPOLATION
+
     static numerics Num_InterpTo(numerics& current, Numeric_CRef target, const float& deltaTime, Numeric_CRef speed)
     {
 
@@ -416,7 +420,7 @@ public:
         return current + (target - current) * alpha;
     }
 
-    static Vector2D<numerics> Vec_InterpTo(const Vector2D<numerics>& current, const Vector2D<numerics>& target,const float& deltaTime, Numeric_CRef speed)
+    static Vector2D<numerics> Vec_InterpTo(const Vector2D<numerics>& current, const Vector2D<numerics>& target, const float& deltaTime, Numeric_CRef speed)
     {
 
         static float startDeltaTime;
@@ -427,6 +431,24 @@ public:
 
         float alpha = std::clamp(localDeltaTime * speed, 0.0f, 1.0f);
         return current + (target - current) * alpha;
+    }
+
+#endif // VECTOR_2D_ENABLE_INTERPOLATION
+
+    std::string to_string() const {
+        return "(" + std::to_string(X) + ", " + std::to_string(Y) + ")";
+    }
+
+    inline constexpr static Vector2D<float> getRightVector() noexcept {
+        return Vector2D<float>(1.f, 0.f);
+    }
+
+    inline constexpr static Vector2D<float> getUpVector() noexcept {
+        return Vector2D<float>(0.f, 1.f);
+    }
+
+    inline constexpr static Vector2D<float> ZeroVector() noexcept {
+        return Vector2D<float>(NULL, NULL);
     }
 
 };

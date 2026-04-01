@@ -1,16 +1,23 @@
 
+#include "Flags.h"
+
+#ifdef FLAG_INCLUSION_ROBOT_BASE
 #include "RobotBase.h"
+#endif // FLAG_INCLUSION_ROBOT_BASE
+
+#ifdef FLAG_INCLUSION_TIME_FRAMEWORK
+#include "TimeFramework.h"
+#endif // FLAG_INCLUSION_ROBOT_BASE
+
 #include "InitManager.h"
 #include "Verifications.h"
 #include "Reevaluation.h"
 #include "MemTracker.h"
 #include "T_Array.h"
-#include "TimeFramework.h"
 
 //Just testing some functionality
 
-
-INIT_ALLOC_TRACKER
+INIT_ALLOC_TRACKER;
 
 class Worker {
 public:
@@ -21,7 +28,7 @@ public:
     }
 };
 
-int main() 
+int main()
 {
     {
         ReEvaluation::T_FixedGuard<int> FGuard(10, ReEvaluation::EFixedPositionType::FRONT, 5);
@@ -33,22 +40,73 @@ int main()
             FGuard = i;
         }
 
-        std::cout << "Time Objects: " << Time_Objects.size() << "\n";
     }
 
     {
+        std::cout << "===================================\n";
+        for (int i = 0; i < 5; i++){
+            Utility::DO_ONCE([]() {std::cout << "DO ONCE IN FOR LOOP WITH 5 ITERATIONS\n"; });
+            std::cout << "FOR LOOP EXECUTED\n";
+        }
+
+        std::cout << "===================================\n";
+
+        for (int i = 0; i < 5; i++) {
+            Utility::DO_N_TIMES([]() {std::cout << "DO N TIMES, WITH 3 TIMES IN FOR LOOP WITH 5 ITERATIONS\n"; }, 3);
+            std::cout << "FOR LOOP EXECUTED\n";
+        }
+        std::cout << "===================================\n";
+
+        static bool reset = true;
+
+        for (int i = 0; i < 5; i++) {
+
+            Utility::DO_ONCE([]() {std::cout << "DO ONCE, WITH RESET IN FOR LOOP WITH 5 ITERATIONS\n"; }, reset);
+            std::cout << "FOR LOOP EXECUTED\n";
+        }
+
+        std::cout << "===================================\n";
+
+        reset = true;
+
+        for (int i = 0; i < 5; i++) {
+
+            Utility::DO_N_TIMES([]() {std::cout << "DO N TIMES( 2 times ), WITH RESET IN FOR LOOP WITH 5 ITERATIONS\n"; }, reset, 2);
+            std::cout << "FOR LOOP EXECUTED\n";
+        }
+
+        std::cout << "===================================\n";
+
+        for (int i = 0; i < 7; i++) {
+
+            Utility::DO_N_TIMES([]() {std::cout << "DO N TIMES( 2 times ), WITH CONDITION IN FOR LOOP WITH 7 ITERATIONS\n"; }, 2, [i]() ->bool { return i == 2; });
+            std::cout << "FOR LOOP EXECUTED\n";
+        }
+
+        std::cout << "===================================\n";
+    }
+
+    {
+        std::cout << "OBJECTS MANAGER TESTING_BEGIN : \n";
+
         RobotBase robot_1, robot_2;
 
-        std::vector<TimeFramework> vec = { robot_1, robot_2 };
+        Time_Objects.push_back(robot_1);
+
+        Time_Objects.push_back(robot_2);
+
+        std::cout << "Time Objects: " << Time_Objects.size() << "\n";
 
         ObjectsManager::printCollection();
 
-        std::cout << "Contains element 1 : " << ObjectsManager::containsElement(robot_1) << "\n";
+        std::cout << "Contains element robot_1 : " << ObjectsManager::containsElement(robot_1) << "\n";
 
-        //std::cout << "Find element at index 1 : " << ObjectsManager::findElementAtIndex(1) << "\n";
+        std::cout << "Find element at index 0 : " << *ObjectsManager::findElementAtIndex(0) << " | <- robot_2" << "\n";
 
-        std::cout << "Find index of element 1 : " << ObjectsManager::findIndexOfElement(robot_2) << "\n";
-/*
+        std::cout << "Find element at index 1 : " << *ObjectsManager::findElementAtIndex(1) << " | <- robot_1" << "\n";
+
+        std::cout << "Find index of element robot_2 : " << ObjectsManager::findIndexOfElement(robot_2) << "\n";
+        /*
         ObjectsManager::sort_ascending();
 
         ObjectsManager::printCollection();
@@ -57,6 +115,8 @@ int main()
 
         ObjectsManager::printCollection();
         */
+
+        std::cout << "OBJECTS MANAGER TESTING_END\n";
     }
 
     {
@@ -181,17 +241,19 @@ int main()
 
     limitedTimer.StartTimer();
 
-    Utility::FOR_LOOP_WITH_DELAY(0, 10, 1, 0.1s, [](int i) {
-        std::cout << "Delayed FOR\n";
-    });
+    {
+        Utility::FOR_LOOP_WITH_DELAY(0, 10, 1, 0.1s, [](int i) {
+            std::cout << "Delayed FOR\n";
+            });
 
-    int integer = 0;
-    Utility::WHILE_LOOP_WITH_DELAY([&]() {return integer < 10; }, 0.1s, [&]() mutable {
-        std::cout << "Delayed WHILE\n";
-        integer += 1;
+        int integer = 0;
+        Utility::WHILE_LOOP_WITH_DELAY([&]() {return integer < 10; }, 0.1s, [&]() mutable {
+            std::cout << "Delayed WHILE\n";
+            integer += 1;
 
-        std::cout << integer << "\n";
-    });
+            std::cout << integer << "\n";
+            });
+    }
 
     limitedTimer.TerminateTimer();
 
@@ -212,7 +274,7 @@ int main()
 
         TimeFramework::Timer<TimeFramework::ETimerType::TASK_TRACKER> taskTimer;
 
-        taskTimer.StartFunctionTrack([]() {
+        taskTimer.StartFunctionTrack([]() -> void {
 
             std::cout << "FUNCTION CALL -> TASK TIMER ON!\n";
 
@@ -290,14 +352,14 @@ int main()
                 }
             },
             {
-                []() {return false; },
+                []() {return true; },
                 []()
                 {
                     static Vector2D<float> var{1.3f, 23.f};
 
                     TimeFramework::Delay(0.1s);
 
-                    std::cout << Vector2D<float>::Vec_InterpTo(var, Vector2D<float>(100.f), *TimeFramework::WorldTime::GetWorldDeltaTime(), 1.3f).to_string() << "\n";
+                    std::cout << Vector2D<float>::Vec_InterpTo(var, Vector2D<float>(100.f), *TimeFramework::WorldTime::GetWorldDeltaTime(), 0.3f).to_string() << "\n";
                 }
             },
             {

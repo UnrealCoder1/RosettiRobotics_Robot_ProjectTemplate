@@ -24,34 +24,34 @@ static float DeltaTime = 0.0f;
 
 static inline int ID_Counter;
 
+class TimeFramework; // <- Forwarding declaration
+
+static inline std::vector<TimeFramework> Time_Objects;
+
 class TimeFramework : public MemTracker{
 
 public:
 
     TimeFramework() {
-        name = ("Timeline NAME_NONE_" + std::to_string(this->ID));
-
         ID = ID_Counter;
 
-        std::cout << "COUNTER: " << ID << "\n";
-
         ID_Counter += 1;
+
+        name = ("Timeline NAME_NONE_" + std::to_string(this->ID));
     }
 
     TimeFramework(const TimeFramework& other, const std::string& name) : MemTracker(other), name(name) {
         ID = ID_Counter;
 
-        std::cout << "COUNTER: " << ID << "\n";
-
         ID_Counter += 1;
     }
 
-    TimeFramework(const TimeFramework& other) : MemTracker(other), name(("Timeline NAME_NONE_" + std::to_string(this->ID))) {
+    TimeFramework(const TimeFramework& other) : MemTracker(other){
         ID = ID_Counter;
 
-        std::cout << "COUNTER: " << ID << "\n";
-
         ID_Counter += 1;
+
+        name = "Timeline NAME_NONE_" + std::to_string(this->ID);
     }
 
 private:
@@ -70,11 +70,7 @@ public:
     }
 
     bool operator==(const TimeFramework& other) const {
-        return this->ID == other.ID;
-    }
-
-    bool operator==(const int& other) const {
-        return this->ID == other;
+        return this->name == other.name;
     }
 
     bool operator>(const TimeFramework& other) const {
@@ -128,6 +124,10 @@ public:
     template<std::floating_point f_point>
     inline static void Delay(const std::chrono::duration<f_point>& duration) {
         std::this_thread::sleep_for(duration);
+    }
+
+    int* getID() {
+        return &ID;
     }
 
 public:
@@ -231,7 +231,7 @@ public:
         }
 
         template<typename Func> requires (std::is_invocable_v<Func>)
-        void StartFunctionTrack(Func&& func) requires (Type == ETimerType::TASK_TRACKER){
+        auto StartFunctionTrack(Func&& func) requires (Type == ETimerType::TASK_TRACKER){
             start_TimePoint = HighRes_Clock::now();
 
             auto start = std::chrono::duration_cast<std::chrono::milliseconds>(start_TimePoint.time_since_epoch());
@@ -245,6 +245,8 @@ public:
             auto elapsed = end - start;
 
             std::cout << "Time PASSED: " << elapsed << "\n";
+
+            return elapsed;
         }
 
     private:
@@ -297,8 +299,6 @@ public:
     };
 
 };
-
-static std::vector<TimeFramework> Time_Objects(2);
 
 class ObjectsManager : public CollectionDefaults<TimeFramework> {
 
