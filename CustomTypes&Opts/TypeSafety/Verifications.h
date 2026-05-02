@@ -22,7 +22,7 @@ class Verifications {
 public:
 
     template<Memory_Value MemoryValue>
-    static const bool& Ensure(MemoryValue&& ensuredValue) {
+    static bool Ensure(MemoryValue&& ensuredValue) {
 
         if constexpr (std::is_pointer_v<MemoryValue>) {
             if (ensuredValue != nullptr) return true;
@@ -57,7 +57,7 @@ public:
     }
 
     template<Memory_Value MemoryValue>
-    static const bool& Check(MemoryValue&& checkedValue) {
+    static bool Check(MemoryValue&& checkedValue) {
         if (!Ensure(checkedValue)) {
             DEBUG_BREAK();
 

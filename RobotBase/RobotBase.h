@@ -3,12 +3,24 @@
 #include "RobotSettings.h"
 #include "TimeFramework.h"
 
+#include <stop_token>
+
+#include <cmath>
+
 #define USE_TYPE 0
+
+#define R_SETTINGS RobotConfig.Settings
 
 template<std::floating_point f_point>
 using Translation = Vector2D<f_point>;
 
 class RobotBase : public TimeFramework {
+
+private:
+
+    std::stop_source m_stop_source;
+
+    std::stop_token m_st = m_stop_source.get_token();
 
 private:
 
@@ -32,25 +44,17 @@ public:
 
     R_Settings RobotConfig;
 
-    bool bStartBranchExecution{ true };
-
 public:
 
     template<std::floating_point f_point>
     void PauseMachineExecution(const std::chrono::duration<f_point>& duration)
     {
-        bStartBranchExecution = false;
-
         using clock = std::chrono::steady_clock;
 
         auto start = clock::now();
         auto now = clock::now();
 
         auto elapsed = std::chrono::duration_cast<std::chrono::seconds>(now - start);
-
-        if (elapsed.count() >= duration.count()) {
-            bStartBranchExecution = true;
-        }
     }
 
     void Run();
@@ -64,11 +68,31 @@ public:
     }
 
     void setRobotPos(const TranslationType& newPos) {
-        this->Pos = newPos;
+        this->Pos = Vector2D<decltype(Pos.X)>{
+            std::clamp(
+                newPos.X, get<MAPPED_SPACE>(R_SETTINGS).first.X,
+                get<MAPPED_SPACE>(R_SETTINGS).first.Y
+            ),
+            
+            std::clamp(
+                newPos.Y, get<MAPPED_SPACE>(R_SETTINGS).second.X,
+                get<MAPPED_SPACE>(R_SETTINGS).second.Y
+            )
+        };
     }
 
     void setRobotPos(TranslationType* newPos) {
-        this->Pos = *newPos;
+        this->Pos = Vector2D<decltype(Pos.X)>{
+        std::clamp(
+            newPos->X, get<MAPPED_SPACE>(R_SETTINGS).first.X,
+            get<MAPPED_SPACE>(R_SETTINGS).first.Y
+        ),
+
+        std::clamp(
+            newPos->Y, get<MAPPED_SPACE>(R_SETTINGS).second.X,
+            get<MAPPED_SPACE>(R_SETTINGS).second.Y
+        )
+        };
     }
 
 protected:

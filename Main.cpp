@@ -14,22 +14,21 @@
 #include "Reevaluation.h"
 #include "MemTracker.h"
 #include "T_Array.h"
-
+#include "ExampleRobot.h"
 //Just testing some functionality
 
-INIT_ALLOC_TRACKER;
-
-class Worker {
+/*class Worker {
 public:
     void work() {
         Utility::FOR_LOOP_WITH_DELAY(0, 2, 1, 0.3s, [](int index) {
             std::cout << "Working" << index << "\n";
         });
     }
-};
+};*/
 
 int main()
 {
+    /*
     {
         ReEvaluation::T_FixedGuard<int> FGuard(10, ReEvaluation::EFixedPositionType::FRONT, 5);
 
@@ -114,7 +113,7 @@ int main()
         ObjectsManager::sort_descending();
 
         ObjectsManager::printCollection();
-        */
+        
 
         std::cout << "OBJECTS MANAGER TESTING_END\n";
     }
@@ -387,5 +386,15 @@ int main()
         });
     }
     
+    */ // Extra testing
 
+    
+    ExampleRobot exampleRobot1;
+
+    exampleRobot1.Run();
+
+    std::this_thread::sleep_for(5.s);
+
+    exampleRobot1.Terminate();
+    
 }

@@ -1,10 +1,11 @@
 #pragma once
 
+#include "AbilityConcepts.h"
 #include "Vector2D.h"
 #include<tuple>
 
 using ChronoDuration = std::chrono::duration<float>;
-using SettingsGroup = std::tuple<bool, MappedSpace, ChronoDuration>;  // <-- STEP 1
+using SettingsGroup = std::tuple<bool, MappedSpace, ChronoDuration, RobotAbilityAttribute<float>*>;  // <-- STEP 1
 
 /*
 * EXAMPLE:
@@ -46,7 +47,8 @@ using SettingsGroup = std::tuple<bool, MappedSpace, ChronoDuration>;  // <-- STE
 enum ESettingsType : int8_t { // <-- STEP 2
     USE_INIT,
     MAPPED_SPACE,
-    DELAY_STEP
+    DELAY_STEP,
+    ROBOT_POWER
 };
 
 struct R_Settings
@@ -54,6 +56,8 @@ struct R_Settings
 private:
 
     //Settings declaration section: // <-- STEP 3
+
+    RobotAbilityAttribute<float> RobotPower = {100.0f, "R Power"};
 
     bool bUseInit_EVENT{ true };
 
@@ -68,6 +72,6 @@ private:
 
 public:
 
-    SettingsGroup Settings = { bUseInit_EVENT, mappedSpace, Delay_Step }; // <-- STEP 4
+    SettingsGroup Settings = { bUseInit_EVENT, mappedSpace, Delay_Step, &RobotPower }; // <-- STEP 4
 
 };

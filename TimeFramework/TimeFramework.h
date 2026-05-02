@@ -5,6 +5,7 @@
 #include<thread>
 #include<type_traits>
 #include<string>
+#include <stop_token>
 
 #include "Vector2D.h"
 #include "MemTracker.h"
@@ -60,7 +61,17 @@ private:
 
     int ID;
 
-    bool bForcedEnd = false;
+    std::thread m_time_thread;
+
+public:
+
+    void JoinTimeThread() noexcept {
+        m_time_thread.join();
+    }
+
+    constexpr const std::thread* GetTimeThread() noexcept {
+        return &m_time_thread;
+    }
 
 public:
 
@@ -107,7 +118,7 @@ public:
 
 public:
 
-    void StartTimeline(bool& bEndCondition, ChronoDuration delay_step);
+    void StartTimeline(std::stop_token* bEndCondition, ChronoDuration delay_step);
 
 protected:
 
@@ -115,9 +126,9 @@ protected:
 
     virtual void EVENT_Tick(float deltaTime);
 
-    void Tick(bool& bEndCondition, ChronoDuration delay_step);
+    void Tick(std::stop_token* bEndCondition, ChronoDuration delay_step);
 
-    void EndTimeline();
+    void EndTimeline(std::stop_source* stop);
 
 public:
 

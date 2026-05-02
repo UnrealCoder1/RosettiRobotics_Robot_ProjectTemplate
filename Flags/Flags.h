@@ -1,5 +1,7 @@
 #pragma once
 
+//==========================================
+
 #define FLAG_TIME_FRAMEWORK
 
 #define FLAG_VECTOR_2D_ANGLES
@@ -7,6 +9,8 @@
 #define FLAG_VECTOR_2D_DISTANCES
 #define FLAG_VECTOR_2D_INTERPOLATION
 #define FLAG_VECTOR_2D_PID_CALCULATION
+
+//=========================================
 
 #define FLAG_ROBOT_BASE
 

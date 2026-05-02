@@ -1,16 +1,13 @@
 
 #include "TimeFramework.h"
-#include <thread>
 #include <algorithm>
 
 using namespace std::chrono_literals;
 
-void TimeFramework::Tick(bool& bEndCondition, ChronoDuration delay_step) {
+void TimeFramework::Tick(std::stop_token* bEndCondition, ChronoDuration delay_step) {
 
-    while (bEndCondition)
+    while (!bEndCondition->stop_requested())
     {
-        if (bForcedEnd) break;
-
         Utility::DO_ONCE([=]() {EVENT_BeginInit(); });
 
         EVENT_Tick(DeltaTime);
@@ -23,13 +20,16 @@ void TimeFramework::Tick(bool& bEndCondition, ChronoDuration delay_step) {
     
 }
 
-void TimeFramework::StartTimeline(bool& bEndCondition, ChronoDuration delay_step) {
-    Tick(bEndCondition, delay_step);
+void TimeFramework::StartTimeline(std::stop_token* bEndCondition, ChronoDuration delay_step) {
+
+    std::thread t(&TimeFramework::Tick, this ,bEndCondition, delay_step);
+
+    m_time_thread.swap(t);
 }
 
-void TimeFramework::EndTimeline()
+void TimeFramework::EndTimeline(std::stop_source* stop)
 {
-    bForcedEnd = true;
+    stop->request_stop();
 }
 
 void TimeFramework::EVENT_BeginInit() {

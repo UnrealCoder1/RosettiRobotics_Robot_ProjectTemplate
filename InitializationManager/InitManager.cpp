@@ -17,12 +17,14 @@ void InitializationManager::Initialize_ParallelStart(FrameworkList list)
 
             if (std::get<FRAMEWORK>(element) != nullptr) {
 
+                /*
                 std::get<FRAMEWORK>(element)->StartTimeline(
 
                     std::get<CONDITION>(element),
                     std::get<STEP>(element)
 
                 );
+                */
             }
 
             })

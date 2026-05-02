@@ -155,7 +155,7 @@ namespace Utility {
 
     template<std::invocable FuncA, std::invocable FuncB>
     void FLIP_FLOP(FuncA&& funcA, FuncB&& funcB) {
-        bool bSwitch = false;
+        static bool bSwitch = false;
 
         if (bSwitch == false) {
             bSwitch = true;
@@ -219,7 +219,7 @@ namespace Utility {
 
 #ifdef VECTOR_2D_ENABLE_PID_CALCULATION
 
-    constexpr double Calculte_PID_Simplified(double Kp, double Ki, double Kd, double delta_time, double expected, double actual) noexcept
+    constexpr double Calculate_PID_Simplified(double Kp, double Ki, double Kd, double delta_time, double expected, double actual) noexcept
     {
         double error = expected - actual;
 
@@ -288,31 +288,31 @@ public:
         return X != 0 || Y != 0;
     }
 
-    constexpr const Vector2D& operator+(const Vector2D& other) const {
+    constexpr Vector2D operator+(const Vector2D& other) const {
         return Vector2D(X + other.X, Y + other.Y);
     }
 
-    constexpr const Vector2D& operator-(const Vector2D& other) const {
+    constexpr Vector2D operator-(const Vector2D& other) const {
         return Vector2D(X - other.X, Y - other.Y);
     }
 
-    constexpr const Vector2D& operator*(const Vector2D& other) const {
+    constexpr Vector2D operator*(const Vector2D& other) const {
         return Vector2D(X * other.X, Y * other.Y);
     }
 
-    constexpr const Vector2D& operator/(const Vector2D& other) const {
+    constexpr Vector2D operator/(const Vector2D& other) const {
         return Vector2D(X / other.X, Y / other.Y);
     }
 
-    constexpr const Vector2D& operator*(const numerics& value) const {
+    constexpr Vector2D operator*(const numerics& value) const {
         return Vector2D(X * value, Y * value);
     }
 
-    constexpr const Vector2D& operator/(const numerics& value) const {
+    constexpr Vector2D operator/(const numerics& value) const {
         return Vector2D(X / value, Y / value);
     }
 
-    Vector2D& operator=(const Vector2D& other) {
+    Vector2D operator=(const Vector2D& other) {
         if (this != &other) {
 
             X = other.X;
