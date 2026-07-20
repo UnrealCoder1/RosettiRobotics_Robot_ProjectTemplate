@@ -20,6 +20,7 @@
 #include "MemTracker.h"
 #include "Flags.h"
 
+#define FORCEINLINE inline __attribute__((always_inline))
 #define INIT_LIST_MOVE_TO std::advance
 
 #if defined(_MSC_VER)
